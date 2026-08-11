@@ -33,9 +33,9 @@ function fetchWith(responses: Record<string, FetchResult>, calls: FetchCall[]): 
 
 function successfulResponses(): Record<string, () => Response> {
   return {
-    [CHURCHILL_API]: () => jsonResponse([CHURCHILL_PAGE_FIXTURE]),
+    [CHURCHILL_API]: () => jsonResponse(CHURCHILL_PAGE_FIXTURE),
     [ST_EDMUNDS_POSTS_API]: () => jsonResponse(ST_EDMUNDS_POST_FIXTURES),
-    [ST_EDMUNDS_CATERING_API]: () => jsonResponse([ST_EDMUNDS_CATERING_FIXTURE])
+    [ST_EDMUNDS_CATERING_API]: () => jsonResponse(ST_EDMUNDS_CATERING_FIXTURE)
   };
 }
 
@@ -74,8 +74,8 @@ describe("DashboardSession", () => {
 
     expect(calls.map((call) => call.url).sort()).toEqual([CHURCHILL_API, ST_EDMUNDS_CATERING_API, ST_EDMUNDS_POSTS_API].sort());
     pending.get(ST_EDMUNDS_POSTS_API)?.(jsonResponse(ST_EDMUNDS_POST_FIXTURES));
-    pending.get(ST_EDMUNDS_CATERING_API)?.(jsonResponse([ST_EDMUNDS_CATERING_FIXTURE]));
-    pending.get(CHURCHILL_API)?.(jsonResponse([CHURCHILL_PAGE_FIXTURE]));
+    pending.get(ST_EDMUNDS_CATERING_API)?.(jsonResponse(ST_EDMUNDS_CATERING_FIXTURE));
+    pending.get(CHURCHILL_API)?.(jsonResponse(CHURCHILL_PAGE_FIXTURE));
 
     const state = await refresh;
     expect(state.colleges.churchill.status).toBe("ready");
@@ -122,13 +122,13 @@ describe("DashboardSession", () => {
         if (churchillRequests === 2) {
           throw new Error("Churchill unavailable");
         }
-        return jsonResponse([CHURCHILL_PAGE_FIXTURE]);
+        return jsonResponse(CHURCHILL_PAGE_FIXTURE);
       }
       if (url === ST_EDMUNDS_POSTS_API) {
         return jsonResponse(ST_EDMUNDS_POST_FIXTURES);
       }
       if (url === ST_EDMUNDS_CATERING_API) {
-        return jsonResponse([ST_EDMUNDS_CATERING_FIXTURE]);
+        return jsonResponse(ST_EDMUNDS_CATERING_FIXTURE);
       }
       throw new Error(`Unexpected request: ${url}`);
     }) as typeof fetch;

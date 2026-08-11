@@ -44,15 +44,15 @@ async function fetchJson(fetchImpl: typeof fetch, url: string): Promise<unknown>
   return response.json();
 }
 
-function pageFromList(value: unknown, source: string): WordPressPage {
-  if (!Array.isArray(value) || !isWordPressPage(value[0])) {
+function pageFromResponse(value: unknown, source: string): WordPressPage {
+  if (!isWordPressPage(value)) {
     throw new Error(`${source} returned an invalid page response`);
   }
-  return value[0];
+  return value;
 }
 
 export async function fetchChurchillSnapshot(fetchImpl: typeof fetch): Promise<ChurchillSnapshot> {
-  return { page: pageFromList(await fetchJson(fetchImpl, CHURCHILL_API), "Churchill") };
+  return { page: pageFromResponse(await fetchJson(fetchImpl, CHURCHILL_API), "Churchill") };
 }
 
 export async function fetchStEdmundsSnapshot(fetchImpl: typeof fetch): Promise<StEdmundsSnapshot> {
@@ -66,6 +66,6 @@ export async function fetchStEdmundsSnapshot(fetchImpl: typeof fetch): Promise<S
 
   return {
     posts: postsResponse,
-    cateringPage: pageFromList(cateringResponse, "St Edmund's catering")
+    cateringPage: pageFromResponse(cateringResponse, "St Edmund's catering")
   };
 }
