@@ -121,4 +121,51 @@ describe("renderDashboard", () => {
     expect(root.querySelector("img")).toBeNull();
     expect(root.textContent).toContain("<img src=x onerror=alert(1)>");
   });
+
+  it("provides labelled semantic controls, dates, meals, state text, and descriptive PDF titles", () => {
+    const root = render();
+
+    const dateInput = root.querySelector<HTMLInputElement>('input[type="date"]');
+    expect(dateInput?.id).toBe("dining-date");
+    expect(root.querySelector(`label[for="${dateInput?.id}"]`)?.textContent).toContain("Dining date");
+    expect(root.querySelector('button[name="previous"]')?.getAttribute("aria-label")).toBe("Previous dining date");
+    expect(root.querySelector('button[name="next"]')?.getAttribute("aria-label")).toBe("Next dining date");
+    expect(root.querySelector('button[name="today"]')?.getAttribute("aria-label")).toBe("Select today");
+    expect(root.querySelector('button[name="refresh"]')?.getAttribute("aria-label")).toBe("Refresh dining data");
+    expect(root.querySelector('time[datetime="2026-08-11"]')?.textContent).toContain("Tuesday, 11 August 2026");
+
+    const mealSections = [...root.querySelectorAll<HTMLElement>('article section[data-meal]')];
+    expect(mealSections).toHaveLength(8);
+    for (const section of mealSections) {
+      const headingId = section.getAttribute("aria-labelledby");
+      expect(headingId).toBeTruthy();
+      expect(section.querySelector(`h3#${headingId}`)).not.toBeNull();
+    }
+
+    expect(root.querySelector('[role="status"]')?.textContent).toContain("Freshness: Live data");
+    expect(root.textContent).toContain("Availability: Unknown");
+    expect(root.querySelector('object[data$="week-3-lunch.pdf"]')?.getAttribute("title")).toBe("St Edmund's College lunch menu for Week 3");
+    expect(root.querySelector('object[data$="week-3-dinner.pdf"]')?.getAttribute("title")).toBe("St Edmund's College dinner menu for Week 3");
+  });
+
+  it("announces loading and error states with readable status text", () => {
+    const loading: DashboardState = {
+      selectedDate,
+      colleges: {
+        churchill: { status: "loading", college: "churchill", collegeName: "Churchill College" },
+        "st-edmunds": {
+          status: "error",
+          college: "st-edmunds",
+          collegeName: "St Edmund's College",
+          message: "Live St Edmund's College dining data could not be loaded.",
+          sourceLinks: []
+        }
+      }
+    };
+    const root = render(loading);
+
+    const stateText = [...root.querySelectorAll('[role="status"]')].map((region) => region.textContent ?? "");
+    expect(stateText[0]).toContain("Loading live dining data…");
+    expect(stateText[1]).toContain("Live St Edmund's College dining data could not be loaded.");
+  });
 });

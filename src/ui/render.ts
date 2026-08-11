@@ -36,11 +36,11 @@ function formattedDate(date: string): string {
   return `${weekdayForIso(date as DiningDay["date"])}, ${display}`;
 }
 
-function appendField(parent: HTMLElement, label: string, value: string): HTMLElement {
-  const field = element("p");
-  field.append(element("strong", `${label}:`), document.createTextNode(` ${value}`));
+function appendField(parent: HTMLElement, label: string, value: string): void {
+  const field = element("dl");
+  field.className = "field";
+  field.append(element("dt", `${label}:`), document.createTextNode(" "), element("dd", value));
   parent.append(field);
-  return field;
 }
 
 function availabilityLabel(value: MealRecord["availability"]): string {
@@ -60,8 +60,16 @@ function appendExternalLink(parent: HTMLElement, label: string, url: string): HT
   return link;
 }
 
-function appendMenu(parent: HTMLElement, menu: MealRecord["menu"]): void {
+function pdfTitle(collegeName: string, mealLabel: string, label: string, url: string): string {
+  const weekFromLabel = label.match(/\bweek\s+\d+\b/i)?.[0];
+  const weekFromUrl = url.match(/\bweek[-_ ]?(\d+)\b/i)?.[1];
+  const week = weekFromLabel ?? (weekFromUrl === undefined ? "published week" : `Week ${weekFromUrl}`);
+  return `${collegeName} ${mealLabel.toLowerCase()} menu for ${week}`;
+}
+
+function appendMenu(parent: HTMLElement, menu: MealRecord["menu"], collegeName: string, mealLabel: string): void {
   const container = element("div");
+  container.className = "menu";
   container.append(element("strong", "Menu:"));
   if (menu.kind === "items") {
     const list = element("ul");
@@ -77,7 +85,7 @@ function appendMenu(parent: HTMLElement, menu: MealRecord["menu"]): void {
       const object = element("object");
       object.type = "application/pdf";
       object.data = safeUrl;
-      object.title = menu.label;
+      object.title = pdfTitle(collegeName, mealLabel, menu.label, safeUrl);
       object.append(document.createTextNode("PDF preview unavailable. "));
       appendExternalLink(object, menu.label, safeUrl);
       container.append(object);
@@ -88,19 +96,27 @@ function appendMenu(parent: HTMLElement, menu: MealRecord["menu"]): void {
   parent.append(container);
 }
 
-function appendMeal(parent: HTMLElement, meal: MealRecord): void {
+function appendMeal(parent: HTMLElement, meal: MealRecord, collegeName: string, collegeId: string): void {
   const section = element("section");
   const mealLabel = { breakfast: "Breakfast", brunch: "Brunch", lunch: "Lunch", dinner: "Dinner" }[meal.type];
-  section.append(element("h3", mealLabel));
+  const headingId = `${collegeId}-${meal.type}-heading`;
+  section.className = "meal-card";
+  section.dataset.meal = meal.type;
+  section.dataset.state = meal.availability;
+  section.setAttribute("aria-labelledby", headingId);
+  const heading = element("h3", mealLabel);
+  heading.id = headingId;
+  section.append(heading);
   appendField(section, "Availability", availabilityLabel(meal.availability));
   appendField(section, "Time", meal.time);
-  appendMenu(section, meal.menu);
+  appendMenu(section, meal.menu, collegeName, mealLabel);
   appendField(section, "Notes", meal.notes.length > 0 ? meal.notes.join(" ") : "No special notes published");
   parent.append(section);
 }
 
 function appendOfficialSources(parent: HTMLElement, sources: SourceLink[]): void {
   const section = element("section");
+  section.className = "official-sources";
   section.append(element("h3", "Official sources"));
   let rendered = false;
   for (const source of sources) {
@@ -116,9 +132,14 @@ function appendOfficialSources(parent: HTMLElement, sources: SourceLink[]): void
   parent.append(section);
 }
 
-function appendNotices(parent: HTMLElement, notices: string[]): void {
-  const section = element("section");
-  section.append(element("h3", "Notices"));
+function appendNotices(parent: HTMLElement, notices: string[], collegeId: string): void {
+  const section = element("aside");
+  section.className = "notices";
+  const headingId = `${collegeId}-notices-heading`;
+  section.setAttribute("aria-labelledby", headingId);
+  const heading = element("h3", "Notices");
+  heading.id = headingId;
+  section.append(heading);
   if (notices.length === 0) {
     section.append(element("p", "No general notices published."));
   } else {
@@ -131,16 +152,37 @@ function appendNotices(parent: HTMLElement, notices: string[]): void {
   parent.append(section);
 }
 
+function appendState(parent: HTMLElement, state: "live" | "stale" | "loading" | "error", text: string): void {
+  const region = element("p");
+  region.className = "state";
+  region.dataset.state = state;
+  region.setAttribute("role", "status");
+  region.setAttribute("aria-live", "polite");
+  const iconText = { live: "●", stale: "⚠", loading: "…", error: "!" }[state];
+  const icon = element("span", iconText);
+  icon.className = "state-icon";
+  icon.setAttribute("aria-hidden", "true");
+  region.append(icon, document.createTextNode(` ${text}`));
+  parent.append(region);
+}
+
 function appendReadyCard(parent: HTMLElement, day: DiningDay): void {
   const card = element("article");
+  card.className = "college-card";
   card.append(element("h2", day.collegeName));
-  card.append(element("p", formattedDate(day.date)));
-  card.append(element("p", day.freshness === "live" ? "Live data" : "Cached result"));
+  const date = element("time", formattedDate(day.date));
+  date.dateTime = day.date;
+  card.append(date);
+  appendState(
+    card,
+    day.freshness,
+    day.freshness === "live" ? "Freshness: Live data" : "Freshness: Cached result (stale data)"
+  );
   card.append(element("p", `Last checked: ${formatCambridgeTimestamp(day.fetchedAt)}`));
   for (const mealType of MEAL_TYPES) {
-    appendMeal(card, day.meals[mealType]);
+    appendMeal(card, day.meals[mealType], day.collegeName, day.college);
   }
-  appendNotices(card, day.notices);
+  appendNotices(card, day.notices, day.college);
   appendOfficialSources(card, day.sourceLinks);
   parent.append(card);
 }
@@ -151,12 +193,12 @@ function appendUnavailableCard(
   selectedDate: string
 ): void {
   const card = element("article");
+  card.className = "college-card";
   card.append(element("h2", state.collegeName));
-  card.append(element("p", formattedDate(selectedDate)));
-  const liveRegion = element("p");
-  liveRegion.setAttribute("aria-live", "polite");
-  liveRegion.textContent = state.status === "loading" ? "Loading live dining data…" : state.message;
-  card.append(liveRegion);
+  const date = element("time", formattedDate(selectedDate));
+  date.dateTime = selectedDate;
+  card.append(date);
+  appendState(card, state.status, state.status === "loading" ? "Loading live dining data…" : state.message);
   if (state.status === "error") {
     appendOfficialSources(card, state.sourceLinks);
   }
@@ -165,42 +207,64 @@ function appendUnavailableCard(
 
 function appendControls(parent: HTMLElement, selectedDate: string, actions: DashboardActions): void {
   const controls = element("section");
+  controls.className = "date-controls";
   controls.setAttribute("aria-label", "Dining date controls");
   const previous = element("button", "Previous");
   previous.name = "previous";
   previous.type = "button";
+  previous.dataset.focusKey = "previous";
+  previous.setAttribute("aria-label", "Previous dining date");
   previous.addEventListener("click", actions.previousDate);
   const today = element("button", "Today");
   today.name = "today";
   today.type = "button";
+  today.dataset.focusKey = "today";
+  today.setAttribute("aria-label", "Select today");
   today.addEventListener("click", actions.selectToday);
   const next = element("button", "Next");
   next.name = "next";
   next.type = "button";
+  next.dataset.focusKey = "next";
+  next.setAttribute("aria-label", "Next dining date");
   next.addEventListener("click", actions.nextDate);
   const dateInput = element("input");
+  dateInput.id = "dining-date";
   dateInput.type = "date";
   dateInput.value = selectedDate;
-  dateInput.setAttribute("aria-label", "Select dining date");
+  dateInput.dataset.focusKey = "date";
   dateInput.addEventListener("change", () => actions.selectDate(dateInput.value));
   const refresh = element("button", "Refresh");
   refresh.name = "refresh";
   refresh.type = "button";
+  refresh.dataset.focusKey = "refresh";
+  refresh.setAttribute("aria-label", "Refresh dining data");
   refresh.addEventListener("click", actions.refresh);
-  controls.append(previous, today, next, dateInput, refresh);
+  const dateLabel = element("label", "Dining date");
+  dateLabel.htmlFor = dateInput.id;
+  controls.append(previous, today, next, dateLabel, dateInput, refresh);
   parent.append(controls);
 }
 
 export function renderDashboard(root: HTMLElement, state: DashboardState, actions: DashboardActions): void {
+  const focusedElement = document.activeElement;
+  const focusKey =
+    focusedElement instanceof HTMLElement && root.contains(focusedElement) ? focusedElement.dataset.focusKey : undefined;
   const dashboard = element("div");
+  dashboard.className = "dashboard";
   dashboard.append(element("h1", "Cambridge college dining"));
   appendControls(dashboard, state.selectedDate, actions);
+  const collegeGrid = element("div");
+  collegeGrid.className = "college-grid";
   for (const college of [state.colleges.churchill, state.colleges["st-edmunds"]]) {
     if (college.status === "ready") {
-      appendReadyCard(dashboard, college.day);
+      appendReadyCard(collegeGrid, college.day);
     } else {
-      appendUnavailableCard(dashboard, college, state.selectedDate);
+      appendUnavailableCard(collegeGrid, college, state.selectedDate);
     }
   }
+  dashboard.append(collegeGrid);
   root.replaceChildren(dashboard);
+  if (focusKey !== undefined) {
+    root.querySelector<HTMLElement>(`[data-focus-key="${focusKey}"]`)?.focus();
+  }
 }

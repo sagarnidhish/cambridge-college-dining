@@ -1,4 +1,7 @@
+/// <reference types="vite/client" />
+
 import { createDashboardSession } from "./app/dashboard-session";
+import "./styles.css";
 import { mountDashboard } from "./ui/mount";
 
 const root = document.querySelector<HTMLElement>("#app");

@@ -78,4 +78,20 @@ describe("mountDashboard", () => {
     expect(root.querySelector<HTMLInputElement>('input[type="date"]')?.disabled).toBe(false);
     expect(root.querySelector<HTMLButtonElement>('button[name="refresh"]')?.disabled).toBe(false);
   });
+
+  it("keeps keyboard focus on the activated control after rerendering", async () => {
+    const root = await mounted(sessionFor());
+    document.body.append(root);
+    try {
+      const next = root.querySelector<HTMLButtonElement>('button[name="next"]');
+      if (next === null) throw new Error("next button missing");
+
+      next.focus();
+      next.click();
+
+      expect(document.activeElement).toBe(root.querySelector('button[name="next"]'));
+    } finally {
+      root.remove();
+    }
+  });
 });
