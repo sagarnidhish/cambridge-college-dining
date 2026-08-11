@@ -344,29 +344,48 @@ function menuPdfs(post: WordPressPost): Partial<Record<"lunch" | "dinner", MealR
   return menus;
 }
 
+interface NoticeLine {
+  display: string;
+  evidence: string;
+}
+
+function noticeLines(element: Element): NoticeLine[] {
+  const displayElement = element.cloneNode(true) as Element;
+  const evidenceElement = element.cloneNode(true) as Element;
+  evidenceElement.querySelectorAll('a[href*=".pdf"]').forEach((anchor) => anchor.remove());
+  for (const lineElement of [displayElement, evidenceElement]) {
+    lineElement.querySelectorAll("br").forEach((br) => br.replaceWith("\n"));
+  }
+  const displayLines = (displayElement.textContent ?? "").split("\n").map(normalizeWhitespace);
+  const evidenceLines = (evidenceElement.textContent ?? "").split("\n").map(normalizeWhitespace);
+  const count = Math.max(displayLines.length, evidenceLines.length);
+  return Array.from({ length: count }, (_, index) => ({
+    display: displayLines[index] ?? "",
+    evidence: evidenceLines[index] ?? ""
+  }));
+}
+
 function weeklyNotices(post: WordPressPost, weekStart: IsoDate, selectedDate: IsoDate): string[] {
   const document = new DOMParser().parseFromString(post.content.rendered, "text/html");
   const notices: string[] = [];
   let pendingDates: IsoDate[] = [];
 
   for (const element of document.querySelectorAll("p, li")) {
-    const withoutPdfs = element.cloneNode(true) as Element;
-    withoutPdfs.querySelectorAll('a[href*=".pdf"]').forEach((anchor) => anchor.remove());
-    const evidenceLines = htmlLines(withoutPdfs);
-    const displayLines = htmlLines(element);
-
-    for (const [index, line] of evidenceLines.entries()) {
+    for (const { display, evidence } of noticeLines(element)) {
+      if (evidence.length === 0) {
+        continue;
+      }
+      const line = evidence;
       if (/^week\s+commencing\b/i.test(line)) {
         pendingDates = [];
         continue;
       }
-      const displayLine = displayLines[index] ?? line;
       const dates = isoDatesForRange(line, weekStart);
       if (dates.length > 0) {
         pendingDates = dates;
         if (!/^\s*\d{1,2}\/\d{1,2}(?:\s*(?:-|–|—)\s*\d{1,2}\/\d{1,2})?\s*$/.test(line)) {
           if (pendingDates.includes(selectedDate)) {
-            notices.push(displayLine);
+            notices.push(display);
           }
           pendingDates = [];
         }
@@ -374,12 +393,12 @@ function weeklyNotices(post: WordPressPost, weekStart: IsoDate, selectedDate: Is
       }
       if (pendingDates.length > 0) {
         if (pendingDates.includes(selectedDate)) {
-          notices.push(displayLine);
+          notices.push(display);
         }
         pendingDates = [];
         continue;
       }
-      notices.push(displayLine);
+      notices.push(display);
     }
   }
 

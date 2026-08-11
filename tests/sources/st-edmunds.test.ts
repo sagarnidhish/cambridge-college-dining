@@ -94,6 +94,32 @@ describe("parseStEdmundsDay", () => {
     expect(fourteenth.notices).not.toContain("Dinner Service: 18:00 - 18:45");
   });
 
+  it("keeps PDF-only lines from shifting contextual notice dates", () => {
+    const currentWeek = ST_EDMUNDS_POST_FIXTURES[1]!;
+    const post = {
+      ...currentWeek,
+      content: {
+        protected: false,
+        rendered: "<p>Week Commencing 10 August 2026</p><p>13/08<br>Dinner Service: 18:00 - 18:45<br><a href=\"https://www.st-edmunds.cam.ac.uk/wp-content/uploads/2026/08/notice.pdf\">Official notice PDF</a><br>14/08<br>Lunch Service: 12:00 - 13:00<br>Please book a table with the Catering team.</p>"
+      }
+    };
+
+    const thirteenth = parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-13", "2026-08-11T21:35:12.000Z");
+    const fourteenth = parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-14", "2026-08-11T21:35:12.000Z");
+    const unrelated = parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-12", "2026-08-11T21:35:12.000Z");
+
+    for (const day of [thirteenth, fourteenth, unrelated]) {
+      expect(day.notices).toContain("Please book a table with the Catering team.");
+      expect(day.notices.join(" ")).not.toContain("Official notice PDF");
+    }
+    expect(thirteenth.notices).toContain("Dinner Service: 18:00 - 18:45");
+    expect(thirteenth.notices).not.toContain("Lunch Service: 12:00 - 13:00");
+    expect(fourteenth.notices).toContain("Lunch Service: 12:00 - 13:00");
+    expect(fourteenth.notices).not.toContain("Dinner Service: 18:00 - 18:45");
+    expect(unrelated.notices).not.toContain("Dinner Service: 18:00 - 18:45");
+    expect(unrelated.notices).not.toContain("Lunch Service: 12:00 - 13:00");
+  });
+
   it("rejects a recurring timetable with no recognizable service entries", () => {
     const cateringPage = {
       ...ST_EDMUNDS_CATERING_FIXTURE,
