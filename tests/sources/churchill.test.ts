@@ -37,5 +37,6 @@ describe("parseChurchillDay", () => {
 
     expect(day.meals.lunch.availability).toBe("unknown");
     expect(day.notices).toContain("No Churchill schedule is published for this date.");
+    expect(day.sourceModifiedAt).toBe("2026-08-11T15:52:23");
   });
 });

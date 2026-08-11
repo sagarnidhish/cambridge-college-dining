@@ -128,6 +128,7 @@ export function parseChurchillDay(page: WordPressPage, selectedDate: IsoDate, fe
   if (weekStart === null) {
     return {
       ...unknownDay,
+      sourceModifiedAt: page.modified,
       notices: [...publishedNotices(document), "No Churchill schedule is published for this date."]
     };
   }
@@ -189,6 +190,7 @@ export function parseChurchillDay(page: WordPressPage, selectedDate: IsoDate, fe
 
   return {
     ...unknownDay,
+    sourceModifiedAt: page.modified,
     notices: [...publishedNotices(document), "No Churchill schedule is published for this date."]
   };
 }
