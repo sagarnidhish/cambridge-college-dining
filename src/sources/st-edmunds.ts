@@ -151,6 +151,10 @@ function parseStEdmundsSchedule(cateringPage: WordPressPage): StEdmundsSchedule 
     entries.push({ meal, weekdays, time });
   }
 
+  if (entries.length === 0) {
+    throw new Error("St Edmund's recurring timetable is incomplete");
+  }
+
   return { entries, sourceUrl: cateringPage.link };
 }
 
@@ -342,22 +346,44 @@ function menuPdfs(post: WordPressPost): Partial<Record<"lunch" | "dinner", MealR
 
 function weeklyNotices(post: WordPressPost, weekStart: IsoDate, selectedDate: IsoDate): string[] {
   const document = new DOMParser().parseFromString(post.content.rendered, "text/html");
-  return Array.from(document.querySelectorAll("p, li"))
-    .flatMap((element) => {
-      const withoutPdfs = element.cloneNode(true) as Element;
-      withoutPdfs.querySelectorAll('a[href*=".pdf"]').forEach((anchor) => anchor.remove());
-      const lines = htmlLines(withoutPdfs);
-      const scopedDates = lines.flatMap((line) => isoDatesForRange(line, weekStart));
-      if (scopedDates.length > 0 && !scopedDates.includes(selectedDate)) {
-        return [];
+  const notices: string[] = [];
+  let pendingDates: IsoDate[] = [];
+
+  for (const element of document.querySelectorAll("p, li")) {
+    const withoutPdfs = element.cloneNode(true) as Element;
+    withoutPdfs.querySelectorAll('a[href*=".pdf"]').forEach((anchor) => anchor.remove());
+    const evidenceLines = htmlLines(withoutPdfs);
+    const displayLines = htmlLines(element);
+
+    for (const [index, line] of evidenceLines.entries()) {
+      if (/^week\s+commencing\b/i.test(line)) {
+        pendingDates = [];
+        continue;
       }
-      return lines.length === 0 ? [] : htmlLines(element);
-    })
-    .filter((line) => !/^week\s+commencing\b/i.test(line))
-    .filter((line) => {
+      const displayLine = displayLines[index] ?? line;
       const dates = isoDatesForRange(line, weekStart);
-      return dates.length === 0 || dates.includes(selectedDate);
-    });
+      if (dates.length > 0) {
+        pendingDates = dates;
+        if (!/^\s*\d{1,2}\/\d{1,2}(?:\s*(?:-|–|—)\s*\d{1,2}\/\d{1,2})?\s*$/.test(line)) {
+          if (pendingDates.includes(selectedDate)) {
+            notices.push(displayLine);
+          }
+          pendingDates = [];
+        }
+        continue;
+      }
+      if (pendingDates.length > 0) {
+        if (pendingDates.includes(selectedDate)) {
+          notices.push(displayLine);
+        }
+        pendingDates = [];
+        continue;
+      }
+      notices.push(displayLine);
+    }
+  }
+
+  return notices;
 }
 
 function weekdayNumber(selectedDate: IsoDate): number {

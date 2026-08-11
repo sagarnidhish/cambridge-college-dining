@@ -42,8 +42,8 @@ export async function mountDashboard(
     render();
     try {
       const refreshed = await session.refresh(dateToRefresh);
-      if (generation === refreshGeneration && selectedDate === dateToRefresh) {
-        currentState = refreshed;
+      if (generation === refreshGeneration) {
+        currentState = selectedDate === dateToRefresh ? refreshed : session.selectDate(selectedDate);
         render();
       }
     } catch {

@@ -53,6 +53,60 @@ describe("parseStEdmundsDay", () => {
     expect(ranged.notices).toContain("Lunch Service: 12:00 - 13:00");
   });
 
+  it("scopes adjacent dated notice blocks to the date that introduced each block", () => {
+    const currentWeek = ST_EDMUNDS_POST_FIXTURES[1]!;
+    const post = {
+      ...currentWeek,
+      content: {
+        protected: false,
+        rendered: "<p>Week Commencing 10 August 2026</p><p>13/08</p><p>Dinner Service: 18:00 - 18:45</p><p>14/08</p><p>Lunch Service: 12:00 - 13:00</p>"
+      }
+    };
+
+    const thirteenth = parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-13", "2026-08-11T21:35:12.000Z");
+    const fourteenth = parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-14", "2026-08-11T21:35:12.000Z");
+    const unrelated = parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-12", "2026-08-11T21:35:12.000Z");
+
+    expect(thirteenth.notices).toContain("Dinner Service: 18:00 - 18:45");
+    expect(thirteenth.notices).not.toContain("Lunch Service: 12:00 - 13:00");
+    expect(fourteenth.notices).toContain("Lunch Service: 12:00 - 13:00");
+    expect(fourteenth.notices).not.toContain("Dinner Service: 18:00 - 18:45");
+    expect(unrelated.notices).not.toContain("Dinner Service: 18:00 - 18:45");
+    expect(unrelated.notices).not.toContain("Lunch Service: 12:00 - 13:00");
+  });
+
+  it("does not union-scope later service lines after multiple date blocks in one paragraph", () => {
+    const currentWeek = ST_EDMUNDS_POST_FIXTURES[1]!;
+    const post = {
+      ...currentWeek,
+      content: {
+        protected: false,
+        rendered: "<p>Week Commencing 10 August 2026</p><p>13/08<br>Dinner Service: 18:00 - 18:45<br>14/08<br>Lunch Service: 12:00 - 13:00</p>"
+      }
+    };
+
+    const thirteenth = parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-13", "2026-08-11T21:35:12.000Z");
+    const fourteenth = parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-14", "2026-08-11T21:35:12.000Z");
+
+    expect(thirteenth.notices).toContain("Dinner Service: 18:00 - 18:45");
+    expect(thirteenth.notices).not.toContain("Lunch Service: 12:00 - 13:00");
+    expect(fourteenth.notices).toContain("Lunch Service: 12:00 - 13:00");
+    expect(fourteenth.notices).not.toContain("Dinner Service: 18:00 - 18:45");
+  });
+
+  it("rejects a recurring timetable with no recognizable service entries", () => {
+    const cateringPage = {
+      ...ST_EDMUNDS_CATERING_FIXTURE,
+      content: {
+        protected: false,
+        rendered: "<table><tr><th>Opening information</th><th>Weekdays</th><th>See staff notice</th></tr><tr><td>Dining hall</td><td>Monday–Friday</td><td>Contact catering</td></tr></table>"
+      }
+    };
+
+    expect(() => parseStEdmundsDay(ST_EDMUNDS_POST_FIXTURES, cateringPage, "2026-08-11", "2026-08-11T21:35:12.000Z"))
+      .toThrow("St Edmund's recurring timetable is incomplete");
+  });
+
   it("rejects a matched weekly schedule with a malformed recurring service row", () => {
     const cateringPage = {
       ...ST_EDMUNDS_CATERING_FIXTURE,

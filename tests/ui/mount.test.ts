@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { DashboardSession } from "../../src/app/dashboard-session";
+import { createUnknownDiningDay } from "../../src/domain/meals";
 import type { DashboardState, IsoDate } from "../../src/domain/types";
 import { mountDashboard } from "../../src/ui/mount";
 
@@ -12,6 +13,30 @@ function state(date: IsoDate = today): DashboardState {
     colleges: {
       churchill: { status: "error", college: "churchill", collegeName: "Churchill College", message: "Unavailable", sourceLinks: [{ label: "Official", url: "https://www.chu.cam.ac.uk/" }] },
       "st-edmunds": { status: "error", college: "st-edmunds", collegeName: "St Edmund's College", message: "Unavailable", sourceLinks: [{ label: "Official", url: "https://www.st-edmunds.cam.ac.uk/" }] }
+    }
+  };
+}
+
+function readyState(date: IsoDate): DashboardState {
+  const churchill = createUnknownDiningDay({
+    college: "churchill",
+    collegeName: "Churchill College",
+    date,
+    sourceLinks: [{ label: "Official", url: "https://www.chu.cam.ac.uk/" }],
+    fetchedAt: "2026-08-11T12:00:00.000Z"
+  });
+  const stEdmunds = createUnknownDiningDay({
+    college: "st-edmunds",
+    collegeName: "St Edmund's College",
+    date,
+    sourceLinks: [{ label: "Official", url: "https://my.st-edmunds.cam.ac.uk/category/menus/" }],
+    fetchedAt: "2026-08-11T12:00:00.000Z"
+  });
+  return {
+    selectedDate: date,
+    colleges: {
+      churchill: { status: "ready", day: churchill },
+      "st-edmunds": { status: "ready", day: stEdmunds }
     }
   };
 }
@@ -121,5 +146,30 @@ describe("mountDashboard", () => {
 
     expect(root.textContent).toContain("Newer result");
     expect(root.textContent).not.toContain("Older result");
+  });
+
+  it("re-renders a changed date from retained snapshots when the initial refresh settles", async () => {
+    let resolveInitial: ((value: DashboardState) => void) | undefined;
+    let snapshotsReady = false;
+    const session: DashboardSession & { selectDate: ReturnType<typeof vi.fn> } = {
+      refresh: () => new Promise((resolve) => { resolveInitial = resolve; }),
+      selectDate: vi.fn((date: IsoDate) => snapshotsReady ? readyState(date) : state(date))
+    };
+    const root = document.createElement("main");
+    const mounting = mountDashboard(root, session, () => new Date("2026-08-11T12:00:00.000Z"));
+    const input = root.querySelector<HTMLInputElement>('input[type="date"]');
+    if (input === null) throw new Error("date input missing");
+    input.value = selectedDate;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+
+    expect(root.textContent).toContain("Unavailable");
+    snapshotsReady = true;
+    resolveInitial?.(readyState(today));
+    await mounting;
+
+    expect(session.selectDate).toHaveBeenLastCalledWith(selectedDate);
+    expect(root.querySelectorAll('[data-meal]')).toHaveLength(8);
+    expect(root.textContent).not.toContain("Unavailable");
+    expect(root.querySelector('time[datetime="2026-08-12"]')).not.toBeNull();
   });
 });

@@ -269,6 +269,22 @@ describe("DashboardSession", () => {
     expect(drifted.colleges["st-edmunds"]).toMatchObject({ status: "ready", day: { freshness: "stale", fetchedAt: "2026-08-11T21:35:00.000Z" } });
   });
 
+  it("does not replace an exact-date cache when St Edmund's timetable has no recognized services", async () => {
+    const session = makeSession(fetchWith(successfulResponses(), []));
+    await session.refresh(selectedDate);
+    const unrecognizedCatering = {
+      ...ST_EDMUNDS_CATERING_FIXTURE,
+      content: { protected: false, rendered: "<table><tr><td>Dining hall</td><td>Monday–Friday</td><td>Contact catering</td></tr></table>" }
+    };
+    const drifted = await makeSession(fetchWith({
+      [CHURCHILL_API]: () => jsonResponse(CHURCHILL_PAGE_FIXTURE),
+      [ST_EDMUNDS_POSTS_API]: () => jsonResponse(ST_EDMUNDS_POST_FIXTURES),
+      [ST_EDMUNDS_CATERING_API]: () => jsonResponse(unrecognizedCatering)
+    }, [])).refresh(selectedDate);
+
+    expect(drifted.colleges["st-edmunds"]).toMatchObject({ status: "ready", day: { freshness: "stale", fetchedAt: "2026-08-11T21:35:00.000Z" } });
+  });
+
   it("timestamps each college when its source snapshot settles", async () => {
     let resolveChurchill: ((response: Response) => void) | undefined;
     const fetchImpl = ((input: RequestInfo | URL) => {
