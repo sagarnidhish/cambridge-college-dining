@@ -56,3 +56,38 @@ export const ST_EDMUNDS_POST_FIXTURES: WordPressPost[] = [
     }
   }
 ];
+
+export const ST_EDMUNDS_LIVE_CATERING_FIXTURE: WordPressPage = {
+  ...ST_EDMUNDS_CATERING_FIXTURE,
+  content: {
+    protected: false,
+    rendered: `
+      <table>
+        <tbody>
+          <tr><th>Service</th><th>Days</th><th>Time</th></tr>
+          <tr><td>Breakfast</td><td>Wednesdays Only</td><td>8:00am – 9:30 am</td></tr>
+          <tr><td>Lunch</td><td>Monday to Friday and Sunday</td><td>12:30pm – 1:30pm</td></tr>
+          <tr><td>Brunch</td><td>Only on Sat</td><td>11:00am – 12:30pm</td></tr>
+          <tr><td>Dinner</td><td>Mon-Fri</td><td>6:30pm – 7:45 pm</td></tr>
+        </tbody>
+      </table>
+    `
+  }
+};
+
+export const ST_EDMUNDS_LIVE_POST_FIXTURE: WordPressPost = {
+  id: 513,
+  date: "2026-08-10T10:57:07",
+  modified: "2026-08-10T10:57:07",
+  link: "https://www.st-edmunds.cam.ac.uk/weekly-menus-10-august/",
+  title: { rendered: "" },
+  content: {
+    protected: false,
+    rendered: `
+      <p>Weekly Menus – Week Commencing 10th August</p>
+      <p>13/08 Dinner Service: 6:00pm – 6:45pm</p>
+      <p><a href="https://www.st-edmunds.cam.ac.uk/wp-content/uploads/2026/08/live-week-lunch.pdf">Lunch menu</a></p>
+      <p><a href="https://www.st-edmunds.cam.ac.uk/wp-content/uploads/2026/08/live-week-dinner.pdf">Dinner menu</a></p>
+    `
+  }
+};

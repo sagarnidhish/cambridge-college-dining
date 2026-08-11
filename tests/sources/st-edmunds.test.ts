@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { parseStEdmundsDay } from "../../src/sources/st-edmunds";
-import { ST_EDMUNDS_CATERING_FIXTURE, ST_EDMUNDS_POST_FIXTURES } from "../fixtures/st-edmunds";
+import {
+  ST_EDMUNDS_CATERING_FIXTURE,
+  ST_EDMUNDS_LIVE_CATERING_FIXTURE,
+  ST_EDMUNDS_LIVE_POST_FIXTURE,
+  ST_EDMUNDS_POST_FIXTURES
+} from "../fixtures/st-edmunds";
 
 describe("parseStEdmundsDay", () => {
   it("combines recurring service with the applicable weekly PDFs", () => {
@@ -132,5 +137,58 @@ describe("parseStEdmundsDay", () => {
 
     expect(day.meals.lunch.menu).toMatchObject({ kind: "pdf", url: "https://www.st-edmunds.cam.ac.uk/wp-content/uploads/2026/08/newer-lunch.pdf" });
     expect(day.sourceModifiedAt).toBe("2026-08-11T12:00:00");
+  });
+
+  it("keeps live 12-hour Tuesday service rows as normalized recurring slots", () => {
+    const day = parseStEdmundsDay([], ST_EDMUNDS_LIVE_CATERING_FIXTURE, "2026-08-11", "2026-08-11T21:35:12.000Z");
+
+    expect(day.meals.lunch).toMatchObject({ availability: "unknown", time: "Normally 12:30–13:30" });
+    expect(day.meals.dinner).toMatchObject({ availability: "unknown", time: "Normally 18:30–19:45" });
+  });
+
+  it("matches a yearless live weekly heading from its publication date, attaches both official PDFs, and retains its dated override", () => {
+    const day = parseStEdmundsDay(
+      [ST_EDMUNDS_LIVE_POST_FIXTURE],
+      ST_EDMUNDS_LIVE_CATERING_FIXTURE,
+      "2026-08-11",
+      "2026-08-11T21:35:12.000Z"
+    );
+
+    expect(day.meals.lunch).toMatchObject({
+      availability: "available",
+      time: "12:30–13:30",
+      menu: { kind: "pdf", url: "https://www.st-edmunds.cam.ac.uk/wp-content/uploads/2026/08/live-week-lunch.pdf" }
+    });
+    expect(day.meals.dinner).toMatchObject({
+      availability: "available",
+      time: "18:30–19:45",
+      menu: { kind: "pdf", url: "https://www.st-edmunds.cam.ac.uk/wp-content/uploads/2026/08/live-week-dinner.pdf" }
+    });
+
+    const exceptionDay = parseStEdmundsDay(
+      [ST_EDMUNDS_LIVE_POST_FIXTURE],
+      ST_EDMUNDS_LIVE_CATERING_FIXTURE,
+      "2026-08-13",
+      "2026-08-11T21:35:12.000Z"
+    );
+    expect(exceptionDay.meals.dinner).toMatchObject({
+      availability: "available",
+      time: "18:00–18:45",
+      notes: ["13/08 Dinner Service: 6:00pm – 6:45pm"]
+    });
+  });
+
+  it("normalizes midnight and noon in the live 12-hour timetable syntax", () => {
+    const cateringPage = {
+      ...ST_EDMUNDS_LIVE_CATERING_FIXTURE,
+      content: {
+        protected: false,
+        rendered: ST_EDMUNDS_LIVE_CATERING_FIXTURE.content.rendered.replace("12:30pm – 1:30pm", "12:00am – 12:00pm")
+      }
+    };
+
+    const day = parseStEdmundsDay([], cateringPage, "2026-08-16", "2026-08-11T21:35:12.000Z");
+
+    expect(day.meals.lunch).toMatchObject({ availability: "unknown", time: "Normally 00:00–12:00" });
   });
 });

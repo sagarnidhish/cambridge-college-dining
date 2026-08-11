@@ -68,8 +68,36 @@ export interface ServiceOverride {
 }
 
 function normalizeTime(value: string): string | null {
-  const match = value.match(/(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})/);
-  return match === null || match[1] === undefined || match[2] === undefined ? null : `${match[1]}–${match[2]}`;
+  const match = value.match(
+    /\b(\d{1,2}):(\d{2})\s*(a\.?m\.?|p\.?m\.?)?\s*[-–—]\s*(\d{1,2}):(\d{2})\s*(a\.?m\.?|p\.?m\.?)?/i
+  );
+  if (match === null || match[1] === undefined || match[2] === undefined || match[4] === undefined || match[5] === undefined) {
+    return null;
+  }
+
+  const start = normalizeClock(match[1], match[2], match[3]);
+  const end = normalizeClock(match[4], match[5], match[6]);
+  return start === null || end === null ? null : `${start}–${end}`;
+}
+
+function normalizeClock(hourText: string, minuteText: string, meridiem: string | undefined): string | null {
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+  if (minute > 59) {
+    return null;
+  }
+
+  const normalizedMeridiem = meridiem?.replace(/\./g, "").toLowerCase();
+  const normalizedHour = normalizedMeridiem === undefined
+    ? hour
+    : hour >= 1 && hour <= 12
+      ? (hour % 12) + (normalizedMeridiem === "pm" ? 12 : 0)
+      : -1;
+  if (normalizedHour < 0 || normalizedHour > 23) {
+    return null;
+  }
+
+  return `${String(normalizedHour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
 
 function mealFrom(value: string): MealType | null {
@@ -135,13 +163,35 @@ function dateFromParts(year: number, monthIndex: number, day: number): IsoDate |
 function weekStartFrom(post: WordPressPost): IsoDate | null {
   const document = new DOMParser().parseFromString(post.content.rendered, "text/html");
   const text = normalizeWhitespace(`${post.title?.rendered ?? ""} ${document.body.textContent ?? ""}`);
-  const match = text.match(/week\s+commencing\s*:?[\s]*(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]+)\s+(\d{4})/i);
-  if (match === null || match[1] === undefined || match[2] === undefined || match[3] === undefined) {
+  const match = text.match(/week\s+commencing\s*:?[\s]*(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]+)(?:\s+(\d{4}))?/i);
+  if (match === null || match[1] === undefined || match[2] === undefined) {
     return null;
   }
 
   const month = MONTH_INDEX[match[2].toLowerCase()];
-  return month === undefined ? null : dateFromParts(Number(match[3]), month, Number(match[1]));
+  if (month === undefined) {
+    return null;
+  }
+  if (match[3] !== undefined) {
+    return dateFromParts(Number(match[3]), month, Number(match[1]));
+  }
+
+  const timestamp = publishedTimestamp(post);
+  if (timestamp === Number.MIN_SAFE_INTEGER) {
+    return null;
+  }
+  const referenceYear = new Date(timestamp).getUTCFullYear();
+  const candidates = [referenceYear - 1, referenceYear, referenceYear + 1]
+    .flatMap((year) => {
+      const candidate = dateFromParts(year, month, Number(match[1]));
+      return candidate === null ? [] : [candidate];
+    })
+    .sort((first, second) => {
+      const firstDistance = Math.abs(Date.parse(first) - timestamp);
+      const secondDistance = Math.abs(Date.parse(second) - timestamp);
+      return firstDistance - secondDistance || first.localeCompare(second);
+    });
+  return candidates[0] ?? null;
 }
 
 function matchingWeeklyPost(posts: WordPressPost[], selectedDate: IsoDate): { post: WordPressPost; weekStart: IsoDate } | null {
