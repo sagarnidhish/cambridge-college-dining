@@ -145,27 +145,59 @@ function weekStartFrom(post: WordPressPost): IsoDate | null {
 }
 
 function matchingWeeklyPost(posts: WordPressPost[], selectedDate: IsoDate): { post: WordPressPost; weekStart: IsoDate } | null {
-  for (const post of posts) {
+  const matchingPosts = posts.flatMap((post) => {
     const weekStart = weekStartFrom(post);
-    if (weekStart !== null && selectedDate >= weekStart && selectedDate <= addIsoDays(weekStart, 6)) {
-      return { post, weekStart };
+    return weekStart !== null && selectedDate >= weekStart && selectedDate <= addIsoDays(weekStart, 6)
+      ? [{ post, weekStart }]
+      : [];
+  });
+  matchingPosts.sort((first, second) => {
+    const firstPublished = publishedTimestamp(first.post);
+    const secondPublished = publishedTimestamp(second.post);
+    return secondPublished - firstPublished || second.post.id - first.post.id;
+  });
+  return matchingPosts[0] ?? null;
+}
+
+function publishedTimestamp(post: WordPressPost): number {
+  const published = Date.parse(post.date);
+  if (!Number.isNaN(published)) {
+    return published;
+  }
+  const modified = Date.parse(post.modified);
+  return Number.isNaN(modified) ? Number.MIN_SAFE_INTEGER : modified;
+}
+
+function weekDate(weekStart: IsoDate, day: number, monthIndex: number): IsoDate | null {
+  const weekEnd = addIsoDays(weekStart, 6);
+  const year = Number(weekStart.slice(0, 4));
+  for (const candidateYear of [year - 1, year, year + 1]) {
+    const candidate = dateFromParts(candidateYear, monthIndex, day);
+    if (candidate !== null && candidate >= weekStart && candidate <= weekEnd) {
+      return candidate;
     }
   }
-
   return null;
 }
 
-function isoDatesForRange(value: string, year: number): IsoDate[] {
+function isoDatesForRange(value: string, weekStart: IsoDate): IsoDate[] {
   const match = value.match(/(\d{1,2})\/(\d{1,2})(?:\s*(?:-|–|—)\s*(\d{1,2})\/(\d{1,2}))?/);
   if (match === null || match[1] === undefined || match[2] === undefined) {
     return [];
   }
 
-  const start = dateFromParts(year, Number(match[2]) - 1, Number(match[1]));
+  const start = weekDate(weekStart, Number(match[1]), Number(match[2]) - 1);
+  if (start === null) {
+    return [];
+  }
   const end = match[3] === undefined || match[4] === undefined
     ? start
-    : dateFromParts(year, Number(match[4]) - 1, Number(match[3]));
-  if (start === null || end === null || end < start) {
+    : dateFromParts(
+        Number(start.slice(0, 4)) + (Number(match[4]) - 1 < Number(match[2]) - 1 ? 1 : 0),
+        Number(match[4]) - 1,
+        Number(match[3])
+      );
+  if (end === null || end < start || end > addIsoDays(weekStart, 6)) {
     return [];
   }
 
@@ -193,12 +225,11 @@ function serviceDetails(value: string): Omit<ServiceOverride, "dates" | "note"> 
 function serviceOverrides(post: WordPressPost, weekStart: IsoDate): ServiceOverride[] {
   const document = new DOMParser().parseFromString(post.content.rendered, "text/html");
   const lines = Array.from(document.querySelectorAll("p, li")).flatMap(htmlLines);
-  const year = Number(weekStart.slice(0, 4));
   const overrides: ServiceOverride[] = [];
   let pendingDates: IsoDate[] = [];
 
   for (const line of lines) {
-    const dates = isoDatesForRange(line, year);
+    const dates = isoDatesForRange(line, weekStart);
     const details = serviceDetails(line);
     if (dates.length > 0 && details !== null) {
       overrides.push({ ...details, dates, note: line });
@@ -253,13 +284,15 @@ function menuPdfs(post: WordPressPost): Partial<Record<"lunch" | "dinner", MealR
 
 function weeklyNotices(post: WordPressPost, weekStart: IsoDate, selectedDate: IsoDate): string[] {
   const document = new DOMParser().parseFromString(post.content.rendered, "text/html");
-  const year = Number(weekStart.slice(0, 4));
   return Array.from(document.querySelectorAll("p, li"))
-    .filter((element) => element.querySelector('a[href*=".pdf"]') === null)
-    .flatMap(htmlLines)
+    .flatMap((element) => {
+      const withoutPdfs = element.cloneNode(true) as Element;
+      withoutPdfs.querySelectorAll('a[href*=".pdf"]').forEach((anchor) => anchor.remove());
+      return htmlLines(withoutPdfs).length === 0 ? [] : htmlLines(element);
+    })
     .filter((line) => !/^week\s+commencing\b/i.test(line))
     .filter((line) => {
-      const dates = isoDatesForRange(line, year);
+      const dates = isoDatesForRange(line, weekStart);
       return dates.length === 0 || dates.includes(selectedDate);
     });
 }
@@ -333,7 +366,7 @@ export function parseStEdmundsDay(
     meals[override.meal] = override.availability === "closed"
       ? { ...closedMeal(override.meal), notes: [override.note], sourceLinks: links }
       : {
-          ...prior,
+          ...(prior.availability === "closed" ? scheduledMeal(override.meal, override.time ?? "Time not published", links) : prior),
           availability: "available",
           time: override.time ?? prior.time,
           notes: [override.note],
