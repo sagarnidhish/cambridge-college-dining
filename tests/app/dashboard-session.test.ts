@@ -113,6 +113,40 @@ describe("DashboardSession", () => {
     });
   });
 
+  it("uses the cached Churchill day when a later explicit refresh fails", async () => {
+    let churchillRequests = 0;
+    const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url === CHURCHILL_API) {
+        churchillRequests += 1;
+        if (churchillRequests === 2) {
+          throw new Error("Churchill unavailable");
+        }
+        return jsonResponse([CHURCHILL_PAGE_FIXTURE]);
+      }
+      if (url === ST_EDMUNDS_POSTS_API) {
+        return jsonResponse(ST_EDMUNDS_POST_FIXTURES);
+      }
+      if (url === ST_EDMUNDS_CATERING_API) {
+        return jsonResponse([ST_EDMUNDS_CATERING_FIXTURE]);
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    }) as typeof fetch;
+    const session = makeSession(fetchImpl);
+
+    const initial = await session.refresh(selectedDate);
+    const refreshed = await session.refresh(selectedDate);
+
+    expect(initial.colleges.churchill).toMatchObject({
+      status: "ready",
+      day: { freshness: "live", fetchedAt: "2026-08-11T21:35:00.000Z" }
+    });
+    expect(refreshed.colleges.churchill).toMatchObject({
+      status: "ready",
+      day: { freshness: "stale", fetchedAt: "2026-08-11T21:35:00.000Z" }
+    });
+  });
+
   it("does not substitute a different-date cache after a Churchill failure", async () => {
     const cached = createUnknownDiningDay({
       college: "churchill",

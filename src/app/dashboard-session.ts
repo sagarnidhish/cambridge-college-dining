@@ -52,35 +52,38 @@ export function createDashboardSession(deps: {
     return day === null ? errorState(college) : { status: "ready", day };
   }
 
-  function normalizeChurchill(selectedDate: IsoDate): CollegeViewState {
-    if (churchillSnapshot === null) {
+  function normalizeChurchill(selectedDate: IsoDate, snapshot: RetainedSnapshot<ChurchillSnapshot> | null): CollegeViewState {
+    if (snapshot === null) {
       return cachedOrError("churchill", selectedDate);
     }
     try {
-      return cacheReady(parseChurchillDay(churchillSnapshot.source.page, selectedDate, churchillSnapshot.fetchedAt));
+      return cacheReady(parseChurchillDay(snapshot.source.page, selectedDate, snapshot.fetchedAt));
     } catch {
       return cachedOrError("churchill", selectedDate);
     }
   }
 
-  function normalizeStEdmunds(selectedDate: IsoDate): CollegeViewState {
-    if (stEdmundsSnapshot === null) {
+  function normalizeStEdmunds(selectedDate: IsoDate, snapshot: RetainedSnapshot<StEdmundsSnapshot> | null): CollegeViewState {
+    if (snapshot === null) {
       return cachedOrError("st-edmunds", selectedDate);
     }
     try {
-      const { posts, cateringPage } = stEdmundsSnapshot.source;
-      return cacheReady(parseStEdmundsDay(posts, cateringPage, selectedDate, stEdmundsSnapshot.fetchedAt));
+      const { posts, cateringPage } = snapshot.source;
+      return cacheReady(parseStEdmundsDay(posts, cateringPage, selectedDate, snapshot.fetchedAt));
     } catch {
       return cachedOrError("st-edmunds", selectedDate);
     }
   }
 
-  function stateFor(selectedDate: IsoDate): DashboardState {
+  function stateFor(
+    selectedDate: IsoDate,
+    snapshots = { churchill: churchillSnapshot, "st-edmunds": stEdmundsSnapshot }
+  ): DashboardState {
     return {
       selectedDate,
       colleges: {
-        churchill: normalizeChurchill(selectedDate),
-        "st-edmunds": normalizeStEdmunds(selectedDate)
+        churchill: normalizeChurchill(selectedDate, snapshots.churchill),
+        "st-edmunds": normalizeStEdmunds(selectedDate, snapshots["st-edmunds"])
       }
     };
   }
@@ -91,13 +94,19 @@ export function createDashboardSession(deps: {
         fetchChurchillSnapshot(deps.fetchImpl),
         fetchStEdmundsSnapshot(deps.fetchImpl)
       ]);
-      if (churchillResult.status === "fulfilled") {
-        churchillSnapshot = { source: churchillResult.value, fetchedAt: deps.now().toISOString() };
+      const refreshedChurchill = churchillResult.status === "fulfilled"
+        ? { source: churchillResult.value, fetchedAt: deps.now().toISOString() }
+        : null;
+      const refreshedStEdmunds = stEdmundsResult.status === "fulfilled"
+        ? { source: stEdmundsResult.value, fetchedAt: deps.now().toISOString() }
+        : null;
+      if (refreshedChurchill !== null) {
+        churchillSnapshot = refreshedChurchill;
       }
-      if (stEdmundsResult.status === "fulfilled") {
-        stEdmundsSnapshot = { source: stEdmundsResult.value, fetchedAt: deps.now().toISOString() };
+      if (refreshedStEdmunds !== null) {
+        stEdmundsSnapshot = refreshedStEdmunds;
       }
-      return stateFor(selectedDate);
+      return stateFor(selectedDate, { churchill: refreshedChurchill, "st-edmunds": refreshedStEdmunds });
     },
     selectDate(selectedDate) {
       return stateFor(selectedDate);
