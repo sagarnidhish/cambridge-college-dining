@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import type { DashboardSession } from "../../src/app/dashboard-session";
-import type { DashboardState } from "../../src/domain/types";
+import type { DashboardState, IsoDate } from "../../src/domain/types";
 import { mountDashboard } from "../../src/ui/mount";
 
 const today = "2026-08-11" as const;
 const selectedDate = "2026-08-12" as const;
 
-function state(date = today): DashboardState {
+function state(date: IsoDate = today): DashboardState {
   return {
     selectedDate: date,
     colleges: {
@@ -93,5 +93,33 @@ describe("mountDashboard", () => {
     } finally {
       root.remove();
     }
+  });
+
+  it("keeps the latest same-date refresh on screen when an older refresh resolves afterwards", async () => {
+    const resolvers: Array<(value: DashboardState) => void> = [];
+    const session: DashboardSession = {
+      selectDate: (date) => state(date),
+      refresh: (date) => new Promise((resolve) => resolvers.push(resolve))
+    };
+    const root = document.createElement("main");
+    const mount = mountDashboard(root, session, () => new Date("2026-08-11T12:00:00.000Z"));
+    resolvers.shift()?.(state(today));
+    await mount;
+
+    root.querySelector<HTMLButtonElement>('button[name="refresh"]')?.click();
+    root.querySelector<HTMLButtonElement>('button[name="refresh"]')?.click();
+    resolvers[1]?.({
+      ...state(today),
+      colleges: { ...state(today).colleges, churchill: { status: "error", college: "churchill", collegeName: "Churchill College", message: "Newer result", sourceLinks: [] } }
+    });
+    await vi.waitFor(() => expect(root.textContent).toContain("Newer result"));
+    resolvers[0]?.({
+      ...state(today),
+      colleges: { ...state(today).colleges, churchill: { status: "error", college: "churchill", collegeName: "Churchill College", message: "Older result", sourceLinks: [] } }
+    });
+    await Promise.resolve();
+
+    expect(root.textContent).toContain("Newer result");
+    expect(root.textContent).not.toContain("Older result");
   });
 });

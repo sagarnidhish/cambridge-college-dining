@@ -32,6 +32,54 @@ describe("parseStEdmundsDay", () => {
     expect(day.meals.dinner.notes.join(" ")).toContain("13/08 Dinner Service");
   });
 
+  it("keeps split-line date exceptions scoped to their paragraph date", () => {
+    const currentWeek = ST_EDMUNDS_POST_FIXTURES[1]!;
+    const post = {
+      ...currentWeek,
+      content: {
+        protected: false,
+        rendered: "<p>Week Commencing 10 August 2026</p><p>13/08<br>Dinner Service: 18:00 - 18:45</p><p>14/08–15/08<br>Lunch Service: 12:00 - 13:00</p>"
+      }
+    };
+
+    const applicable = parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-13", "2026-08-11T21:35:12.000Z");
+    const unrelated = parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-12", "2026-08-11T21:35:12.000Z");
+    const ranged = parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-15", "2026-08-11T21:35:12.000Z");
+
+    expect(applicable.meals.dinner.notes).toContain("Dinner Service: 18:00 - 18:45");
+    expect(applicable.notices).toContain("Dinner Service: 18:00 - 18:45");
+    expect(unrelated.notices).not.toContain("Dinner Service: 18:00 - 18:45");
+    expect(ranged.meals.lunch.notes).toContain("Lunch Service: 12:00 - 13:00");
+    expect(ranged.notices).toContain("Lunch Service: 12:00 - 13:00");
+  });
+
+  it("rejects a matched weekly schedule with a malformed recurring service row", () => {
+    const cateringPage = {
+      ...ST_EDMUNDS_CATERING_FIXTURE,
+      content: {
+        protected: false,
+        rendered: "<table><tr><td>Monday–Friday</td><td>Lunch</td><td>midday</td></tr></table>"
+      }
+    };
+
+    expect(() => parseStEdmundsDay(ST_EDMUNDS_POST_FIXTURES, cateringPage, "2026-08-11", "2026-08-11T21:35:12.000Z"))
+      .toThrow("St Edmund's recurring timetable is incomplete");
+  });
+
+  it("rejects a matched weekly post with an unparseable dated service override", () => {
+    const currentWeek = ST_EDMUNDS_POST_FIXTURES[1]!;
+    const post = {
+      ...currentWeek,
+      content: {
+        protected: false,
+        rendered: "<p>Week Commencing 10 August 2026</p><p>13/08 Dinner Service: late</p>"
+      }
+    };
+
+    expect(() => parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-13", "2026-08-11T21:35:12.000Z"))
+      .toThrow("St Edmund's dated service override is incomplete");
+  });
+
   it("renders Saturday brunch and explicit regular closures", () => {
     const day = parseStEdmundsDay(
       ST_EDMUNDS_POST_FIXTURES,

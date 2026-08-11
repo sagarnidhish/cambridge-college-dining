@@ -93,6 +93,21 @@ describe("DashboardSession", () => {
     expect(state.colleges["st-edmunds"]).toMatchObject({ status: "ready", day: { college: "st-edmunds", freshness: "live" } });
   });
 
+  it("uses both authoritative St Edmund's links for a terminal no-cache error", async () => {
+    const state = await makeSession(fetchWith({
+      ...successfulResponses(),
+      [ST_EDMUNDS_POSTS_API]: new Error("weekly archive unavailable")
+    }, [])).refresh(selectedDate);
+
+    expect(state.colleges["st-edmunds"]).toMatchObject({
+      status: "error",
+      sourceLinks: [
+        { label: "St Edmund's menu archive", url: "https://my.st-edmunds.cam.ac.uk/category/menus/" },
+        { label: "St Edmund's catering", url: "https://my-cr.st-edmunds.cam.ac.uk/facilities/catering/" }
+      ]
+    });
+  });
+
   it("uses the exact-date Churchill cache as stale data after a Churchill failure", async () => {
     const cached = createUnknownDiningDay({
       college: "churchill",
@@ -188,5 +203,93 @@ describe("DashboardSession", () => {
     await session.refresh("2026-08-12");
 
     expect(calls).toHaveLength(6);
+  });
+
+  it("keeps the newest same-date refresh snapshots and cache when an older refresh resolves last", async () => {
+    const pending: Array<(response: Response) => void> = [];
+    const fetchImpl = ((input: RequestInfo | URL) => new Promise<Response>((resolve) => {
+      pending.push(resolve);
+    })) as typeof fetch;
+    const session = makeSession(fetchImpl);
+
+    const older = session.refresh(selectedDate);
+    const newer = session.refresh(selectedDate);
+    const newerPayloads = [CHURCHILL_PAGE_FIXTURE, ST_EDMUNDS_POST_FIXTURES, ST_EDMUNDS_CATERING_FIXTURE];
+    const olderChurchill = {
+      ...CHURCHILL_PAGE_FIXTURE,
+      modified: "2026-08-01T00:00:00",
+      content: {
+        ...CHURCHILL_PAGE_FIXTURE.content,
+        rendered: CHURCHILL_PAGE_FIXTURE.content.rendered.replace("Churchill Trattoria", "Older Churchill Menu")
+      }
+    };
+    const olderPayloads = [olderChurchill, ST_EDMUNDS_POST_FIXTURES, ST_EDMUNDS_CATERING_FIXTURE];
+
+    pending.slice(3, 6).forEach((resolve, index) => resolve(jsonResponse(newerPayloads[index])));
+    await newer;
+    pending.slice(0, 3).forEach((resolve, index) => resolve(jsonResponse(olderPayloads[index])));
+    await older;
+
+    const selected = session.selectDate(selectedDate);
+    const churchill = selected.colleges.churchill;
+    expect(churchill).toMatchObject({ status: "ready", day: { sourceModifiedAt: CHURCHILL_PAGE_FIXTURE.modified } });
+    expect(churchill.status === "ready" && churchill.day.meals.lunch.menu).not.toEqual({ kind: "items", items: expect.arrayContaining(["Today's Special: Older Churchill Menu"]) });
+  });
+
+  it("does not let an older failed refresh displace a newer successful snapshot", async () => {
+    const pending: Array<(result: Response | Error) => void> = [];
+    const fetchImpl = ((input: RequestInfo | URL) => new Promise<Response>((resolve, reject) => {
+      pending.push((result) => result instanceof Error ? reject(result) : resolve(result));
+    })) as typeof fetch;
+    const session = makeSession(fetchImpl);
+
+    const older = session.refresh(selectedDate);
+    const newer = session.refresh(selectedDate);
+    pending.slice(3, 6).forEach((resolve, index) => resolve(jsonResponse([CHURCHILL_PAGE_FIXTURE, ST_EDMUNDS_POST_FIXTURES, ST_EDMUNDS_CATERING_FIXTURE][index])));
+    await newer;
+    pending.slice(0, 3).forEach((resolve) => resolve(new Error("older request failed")));
+    await older;
+
+    expect(session.selectDate(selectedDate).colleges.churchill).toMatchObject({ status: "ready", day: { freshness: "live" } });
+  });
+
+  it("keeps a valid exact-date cache when semantic source drift makes St Edmund's schedule incomplete", async () => {
+    const session = makeSession(fetchWith(successfulResponses(), []));
+    await session.refresh(selectedDate);
+    const invalidCatering = {
+      ...ST_EDMUNDS_CATERING_FIXTURE,
+      content: { protected: false, rendered: "<table><tr><td>Monday–Friday</td><td>Lunch</td><td>midday</td></tr></table>" }
+    };
+    const drifted = await makeSession(fetchWith({
+      [CHURCHILL_API]: () => jsonResponse(CHURCHILL_PAGE_FIXTURE),
+      [ST_EDMUNDS_POSTS_API]: () => jsonResponse(ST_EDMUNDS_POST_FIXTURES),
+      [ST_EDMUNDS_CATERING_API]: () => jsonResponse(invalidCatering)
+    }, [])).refresh(selectedDate);
+
+    expect(drifted.colleges["st-edmunds"]).toMatchObject({ status: "ready", day: { freshness: "stale", fetchedAt: "2026-08-11T21:35:00.000Z" } });
+  });
+
+  it("timestamps each college when its source snapshot settles", async () => {
+    let resolveChurchill: ((response: Response) => void) | undefined;
+    const fetchImpl = ((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url === CHURCHILL_API) {
+        return new Promise<Response>((resolve) => { resolveChurchill = resolve; });
+      }
+      if (url === ST_EDMUNDS_POSTS_API) return Promise.resolve(jsonResponse(ST_EDMUNDS_POST_FIXTURES));
+      if (url === ST_EDMUNDS_CATERING_API) return Promise.resolve(jsonResponse(ST_EDMUNDS_CATERING_FIXTURE));
+      throw new Error(`Unexpected request: ${url}`);
+    }) as typeof fetch;
+    const times = [new Date("2026-08-11T21:35:01.000Z"), new Date("2026-08-11T21:35:02.000Z")];
+    const session = createDashboardSession({ fetchImpl, storage: localStorage, now: () => times.shift()! });
+    const refresh = session.refresh(selectedDate);
+
+    await Promise.resolve();
+    await Promise.resolve();
+    resolveChurchill?.(jsonResponse(CHURCHILL_PAGE_FIXTURE));
+    const state = await refresh;
+
+    expect(state.colleges["st-edmunds"]).toMatchObject({ status: "ready", day: { fetchedAt: "2026-08-11T21:35:01.000Z" } });
+    expect(state.colleges.churchill).toMatchObject({ status: "ready", day: { fetchedAt: "2026-08-11T21:35:02.000Z" } });
   });
 });

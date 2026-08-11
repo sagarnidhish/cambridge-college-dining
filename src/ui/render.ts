@@ -82,6 +82,7 @@ function appendMenu(parent: HTMLElement, menu: MealRecord["menu"], collegeName: 
     if (safeUrl === null) {
       container.append(document.createTextNode(" Menu unavailable"));
     } else {
+      appendExternalLink(container, menu.label, safeUrl);
       const object = element("object");
       object.type = "application/pdf";
       object.data = safeUrl;
@@ -200,6 +201,19 @@ function appendUnavailableCard(
   card.append(date);
   appendState(card, state.status, state.status === "loading" ? "Loading live dining data…" : state.message);
   if (state.status === "error") {
+    appendState(card, "error", "Freshness: Live data unavailable");
+    card.append(element("p", "Last checked: unavailable"));
+    for (const type of MEAL_TYPES) {
+      appendMeal(card, {
+        type,
+        availability: "unknown",
+        time: "Time unavailable",
+        menu: { kind: "message", message: "Menu unavailable" },
+        notes: ["Notes unavailable"],
+        sourceLinks: state.sourceLinks
+      }, state.collegeName, state.college);
+    }
+    appendNotices(card, ["Notices unavailable"], state.college);
     appendOfficialSources(card, state.sourceLinks);
   }
   parent.append(card);

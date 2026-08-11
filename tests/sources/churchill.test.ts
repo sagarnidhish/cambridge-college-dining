@@ -39,4 +39,30 @@ describe("parseChurchillDay", () => {
     expect(day.notices).toContain("No Churchill schedule is published for this date.");
     expect(day.sourceModifiedAt).toBe("2026-08-11T15:52:23");
   });
+
+  it("keeps matched-day Please note notices visible", () => {
+    const page = {
+      ...CHURCHILL_PAGE_FIXTURE,
+      content: {
+        ...CHURCHILL_PAGE_FIXTURE.content,
+        rendered: `${CHURCHILL_PAGE_FIXTURE.content.rendered}<p>Please note: The dining hall closes promptly.</p>`
+      }
+    };
+
+    expect(parseChurchillDay(page, "2026-08-11", "2026-08-11T21:35:14.000Z").notices)
+      .toContain("Please note: The dining hall closes promptly.");
+  });
+
+  it("rejects a matched day whose timetable row is malformed", () => {
+    const page = {
+      ...CHURCHILL_PAGE_FIXTURE,
+      content: {
+        ...CHURCHILL_PAGE_FIXTURE.content,
+        rendered: CHURCHILL_PAGE_FIXTURE.content.rendered.replace("Breakfast &#8211; 07:30-09:30", "Breakfast - morning")
+      }
+    };
+
+    expect(() => parseChurchillDay(page, "2026-08-11", "2026-08-11T21:35:14.000Z"))
+      .toThrow("Churchill timetable is incomplete");
+  });
 });

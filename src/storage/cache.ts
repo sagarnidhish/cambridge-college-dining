@@ -1,4 +1,4 @@
-import { isIsoDate } from "../domain/dates";
+import { isIsoDate, weekdayForIso } from "../domain/dates";
 import { MEAL_TYPES, type CollegeId, type DiningDay, type IsoDate, type MealRecord, type MealType, type SourceLink } from "../domain/types";
 
 interface CacheEnvelope {
@@ -56,18 +56,22 @@ function isDiningDay(value: unknown, college: CollegeId, date: IsoDate): value i
     || value.college !== college
     || typeof value.collegeName !== "string"
     || value.date !== date
-    || typeof value.weekday !== "string"
+    || value.weekday !== weekdayForIso(date)
     || value.timeZone !== "Europe/London"
     || !isRecord(value.meals)
     || !isStringArray(value.notices)
     || !isSourceLinks(value.sourceLinks)
-    || (value.sourceModifiedAt !== null && typeof value.sourceModifiedAt !== "string")
-    || typeof value.fetchedAt !== "string"
+    || (value.sourceModifiedAt !== null && !isTimestamp(value.sourceModifiedAt))
+    || !isTimestamp(value.fetchedAt)
     || (value.freshness !== "live" && value.freshness !== "stale")) {
     return false;
   }
   const meals = value.meals;
   return MEAL_TYPES.every((type) => isMealRecord(meals[type], type));
+}
+
+function isTimestamp(value: unknown): value is string {
+  return typeof value === "string" && Number.isFinite(Date.parse(value));
 }
 
 function isCacheEnvelope(value: unknown, college: CollegeId, date: IsoDate): value is CacheEnvelope {

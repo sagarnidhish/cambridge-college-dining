@@ -51,4 +51,21 @@ describe("college-day cache", () => {
 
     expect(loadCachedDay(localStorage, "churchill", "2026-08-11")).toBeNull();
   });
+
+  it("rejects a weekday that does not match the cached ISO date", () => {
+    const day = { ...cachedDay(), weekday: "Wednesday" };
+    localStorage.setItem(cacheKey, JSON.stringify({ version: 1, college: "churchill", date: "2026-08-11", day }));
+
+    expect(loadCachedDay(localStorage, "churchill", "2026-08-11")).toBeNull();
+  });
+
+  it("rejects invalid fetched or source-modification timestamps", () => {
+    const invalidFetched = { ...cachedDay(), fetchedAt: "not-a-date" };
+    localStorage.setItem(cacheKey, JSON.stringify({ version: 1, college: "churchill", date: "2026-08-11", day: invalidFetched }));
+    expect(loadCachedDay(localStorage, "churchill", "2026-08-11")).toBeNull();
+
+    const invalidModified = { ...cachedDay(), sourceModifiedAt: "not-a-date" };
+    localStorage.setItem(cacheKey, JSON.stringify({ version: 1, college: "churchill", date: "2026-08-11", day: invalidModified }));
+    expect(loadCachedDay(localStorage, "churchill", "2026-08-11")).toBeNull();
+  });
 });

@@ -147,21 +147,26 @@ export function parseChurchillDay(page: WordPressPage, selectedDate: IsoDate, fe
 
     const scheduleRow = table.rows.item(1);
     const scheduleCell = scheduleRow?.cells.item(0);
-    if (scheduleCell !== null && scheduleCell !== undefined) {
-      for (const line of htmlLines(scheduleCell)) {
+    if (scheduleCell === null || scheduleCell === undefined) {
+      throw new Error("Churchill timetable is incomplete");
+    }
+    const timetableLines = htmlLines(scheduleCell).filter((line) => /\b(?:breakfast|brunch|lunch|dinner)\b/i.test(line));
+    if (timetableLines.length === 0) {
+      throw new Error("Churchill timetable is incomplete");
+    }
+    for (const line of timetableLines) {
         const match = line.match(SERVICE_LINE);
         if (match === null) {
-          continue;
+          throw new Error("Churchill timetable is incomplete");
         }
 
         const [, label, start, end] = match;
         const type = label?.toLowerCase() as MealType | undefined;
         if (type === undefined || !MEAL_TYPES.includes(type) || start === undefined || end === undefined) {
-          continue;
+          throw new Error("Churchill timetable is incomplete");
         }
 
         meals[type] = scheduledMeal(type, `${start}–${end}`, sourceLinks);
-      }
     }
 
     const lunchCell = scheduleRow?.cells.item(1);

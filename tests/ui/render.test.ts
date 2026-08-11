@@ -63,8 +63,12 @@ describe("renderDashboard", () => {
 
     expect(root.textContent).toContain("Today's Special: Churchill Trattoria");
     expect(root.querySelectorAll('object[type="application/pdf"]')).toHaveLength(2);
-    expect(root.querySelector('a[href$="week-3-lunch.pdf"]')?.textContent).toContain("lunch menu PDF");
-    expect(root.querySelector('a[href$="week-3-dinner.pdf"]')?.textContent).toContain("dinner menu PDF");
+    const lunchLink = root.querySelector<HTMLAnchorElement>('a[href$="week-3-lunch.pdf"]');
+    const dinnerLink = root.querySelector<HTMLAnchorElement>('a[href$="week-3-dinner.pdf"]');
+    expect(lunchLink?.textContent).toContain("lunch menu PDF");
+    expect(dinnerLink?.textContent).toContain("dinner menu PDF");
+    expect(lunchLink?.parentElement?.tagName).not.toBe("OBJECT");
+    expect(dinnerLink?.parentElement?.tagName).not.toBe("OBJECT");
     expect(root.textContent).toContain("Availability: Closed");
     expect(root.textContent).toContain("Availability: Unknown");
     expect(root.textContent).toContain("Menu not published");
@@ -88,6 +92,15 @@ describe("renderDashboard", () => {
     expect(root.textContent).toContain("Live Churchill College dining data could not be loaded.");
     expect(root.textContent).toContain("View official source: Churchill catering");
     expect(root.textContent).toContain("St Edmund's College");
+    const errorCard = [...root.querySelectorAll<HTMLElement>("article")].find((card) => card.textContent?.includes("Churchill College"));
+    expect(errorCard?.textContent).toContain("Freshness: Live data unavailable");
+    expect(errorCard?.textContent).toContain("Last checked: unavailable");
+    expect(errorCard?.textContent).toContain("Notices unavailable");
+    expect(errorCard?.querySelectorAll('[data-meal]')).toHaveLength(4);
+    expect(errorCard?.textContent).toContain("Availability: Unknown");
+    expect(errorCard?.textContent).toContain("Time unavailable");
+    expect(errorCard?.textContent).toContain("Menu unavailable");
+    expect(errorCard?.textContent).toContain("Notes unavailable");
   });
 
   it("identifies a stale result as cached and preserves its retrieval timestamp", () => {

@@ -25,6 +25,7 @@ export async function mountDashboard(
 ): Promise<void> {
   let selectedDate = todayInCambridge(now());
   let currentState = loadingState(selectedDate);
+  let refreshGeneration = 0;
 
   const render = (): void => renderDashboard(root, currentState, actions);
 
@@ -35,17 +36,18 @@ export async function mountDashboard(
   };
 
   const refresh = async (): Promise<void> => {
+    const generation = ++refreshGeneration;
     const dateToRefresh = selectedDate;
     currentState = loadingState(dateToRefresh);
     render();
     try {
       const refreshed = await session.refresh(dateToRefresh);
-      if (selectedDate === dateToRefresh) {
+      if (generation === refreshGeneration && selectedDate === dateToRefresh) {
         currentState = refreshed;
         render();
       }
     } catch {
-      if (selectedDate === dateToRefresh) {
+      if (generation === refreshGeneration && selectedDate === dateToRefresh) {
         currentState = session.selectDate(dateToRefresh);
         render();
       }

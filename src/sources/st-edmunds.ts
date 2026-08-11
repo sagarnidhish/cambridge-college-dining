@@ -122,7 +122,7 @@ function weekdaysFrom(value: string): number[] {
 
   for (const [name, weekday] of Object.entries(WEEKDAY_BY_NAME)) {
     const shortName = name.slice(0, 3);
-    if (new RegExp(`\\b(?:${name}|${shortName})\\b`).test(normalized)) {
+    if (new RegExp(`\\b(?:${name}|${shortName})(?:s)?\\b`).test(normalized)) {
       weekdays.add(weekday);
     }
   }
@@ -141,6 +141,9 @@ function parseStEdmundsSchedule(cateringPage: WordPressPage): StEdmundsSchedule 
     const time = normalizeTime(combined);
     const weekdayCell = cells.find((cell) => weekdaysFrom(cell).length > 0) ?? "";
     const weekdays = weekdaysFrom(weekdayCell);
+    if (meal !== null && (time === null || weekdays.length === 0)) {
+      throw new Error("St Edmund's recurring timetable is incomplete");
+    }
     if (meal === null || time === null || weekdays.length === 0) {
       continue;
     }
@@ -286,6 +289,9 @@ function serviceOverrides(post: WordPressPost, weekStart: IsoDate): ServiceOverr
       pendingDates = [];
       continue;
     }
+    if (dates.length > 0 && mealFrom(line) !== null && /\bservice\b/i.test(line)) {
+      throw new Error("St Edmund's dated service override is incomplete");
+    }
     if (dates.length > 0) {
       pendingDates = dates;
       continue;
@@ -293,6 +299,8 @@ function serviceOverrides(post: WordPressPost, weekStart: IsoDate): ServiceOverr
     if (pendingDates.length > 0 && details !== null) {
       overrides.push({ ...details, dates: pendingDates, note: line });
       pendingDates = [];
+    } else if (pendingDates.length > 0 && mealFrom(line) !== null && /\bservice\b/i.test(line)) {
+      throw new Error("St Edmund's dated service override is incomplete");
     }
   }
 
@@ -338,7 +346,12 @@ function weeklyNotices(post: WordPressPost, weekStart: IsoDate, selectedDate: Is
     .flatMap((element) => {
       const withoutPdfs = element.cloneNode(true) as Element;
       withoutPdfs.querySelectorAll('a[href*=".pdf"]').forEach((anchor) => anchor.remove());
-      return htmlLines(withoutPdfs).length === 0 ? [] : htmlLines(element);
+      const lines = htmlLines(withoutPdfs);
+      const scopedDates = lines.flatMap((line) => isoDatesForRange(line, weekStart));
+      if (scopedDates.length > 0 && !scopedDates.includes(selectedDate)) {
+        return [];
+      }
+      return lines.length === 0 ? [] : htmlLines(element);
     })
     .filter((line) => !/^week\s+commencing\b/i.test(line))
     .filter((line) => {
