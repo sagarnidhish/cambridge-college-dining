@@ -57,4 +57,8 @@ Evidence and claims remain intentionally separate. “Official University” is 
 
 The v1 archive target is <https://sagarnidhish.github.io/cambridge-college-dining_old/>. It is outside this repository's Pages workflow and must be requested before and after v2 deployment. The main release target is <https://sagarnidhish.github.io/cambridge-college-dining/>.
 
-Before deployment, Chrome rendered the preserved two-card Churchill/St Edmund's release successfully. Its static HTML SHA-256 was `1d0e9f6ba7fdf8de42f452061fd9e57a22d84b3bc13d710841f4566061879f2d`; the 1440×1000 rendered screenshot SHA-256 was `8beba8797898f2eba4419e6e6de91ded8713a3172b4c2b4e3ddbb0cd39d237c4`. The post-deployment comparison, workflow result, and deployed-product checks are recorded only after they occur.
+Before deployment, Chrome rendered the preserved two-card Churchill/St Edmund's release successfully. Its static HTML SHA-256 was `1d0e9f6ba7fdf8de42f452061fd9e57a22d84b3bc13d710841f4566061879f2d`; the 1440×1000 rendered screenshot SHA-256 was `8beba8797898f2eba4419e6e6de91ded8713a3172b4c2b4e3ddbb0cd39d237c4`.
+
+GitHub Actions run [31618072948](https://github.com/sagarnidhish/cambridge-college-dining/actions/runs/31618072948) completed successfully for commit `868301a`: clean install, collection, verification, built-data validation, artifact upload, and Pages deployment all passed. The deployed main site rendered exactly 31 table rows. Its public Churchill deep link rendered the modal detail, guest rules, notes/restrictions, titled map, and official verification source.
+
+After deployment, the archive static HTML SHA-256 remained exactly `1d0e9f6ba7fdf8de42f452061fd9e57a22d84b3bc13d710841f4566061879f2d`. Chrome showed the same preserved two-card layout; only the expected live “Last checked” text advanced from 17:27 to 17:33. No archive repository or deployment setting was changed.

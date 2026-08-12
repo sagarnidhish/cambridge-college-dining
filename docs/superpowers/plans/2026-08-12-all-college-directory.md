@@ -808,7 +808,7 @@ Expected: dependency install succeeds; tests, type checking, build, schema valid
 
 Serve `dist` beneath the same relative-path behavior as GitHub Pages. Verify: 31 initial rows; date controls; search/four filters/sort; row keyboard activation; drawer title and mandatory fields; Tab/Shift+Tab containment; Escape; focus restoration; deep link; Back/Forward; 720px mobile layout; 320px overflow; reduced motion; and readable loading/error/cached states. Record results in the audit ledger.
 
-- [ ] **Step 4: Verify all source groups and archive invariance**
+- [x] **Step 4: Verify all source groups and archive invariance**
 
 For each catalog record, verify at least one source resolves or document its current failure without promoting evidence. Compare representative direct results with the official page. Request `https://sagarnidhish.github.io/cambridge-college-dining_old/` before and after deployment and record that it remains available and visually unchanged.
 
@@ -819,7 +819,7 @@ git add README.md docs/source-audit-2026-08-12.md docs/superpowers/plans/2026-08
 git commit -m "docs: document all-college dining release"
 ```
 
-- [ ] **Step 6: Push main and watch the Pages workflow**
+- [x] **Step 6: Push main and watch the Pages workflow**
 
 Run: `git push origin main`
 
@@ -827,7 +827,7 @@ Then run: `gh run list --workflow pages.yml --limit 1` and `gh run watch <run-id
 
 Expected: push succeeds and the latest Pages workflow completes successfully.
 
-- [ ] **Step 7: Verify the deployed product**
+- [x] **Step 7: Verify the deployed product**
 
 Open `https://sagarnidhish.github.io/cambridge-college-dining/`, confirm exactly 31 table rows and one working detail deep link, then recheck `https://sagarnidhish.github.io/cambridge-college-dining_old/`.
 
