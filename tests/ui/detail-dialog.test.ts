@@ -32,8 +32,7 @@ describe("college detail dialog", () => {
     expect(dialog.textContent).toContain("Wednesday, 12 August 2026");
     expect(dialog.textContent).toContain("Closed today: Breakfast, brunch");
     expect(dialog.textContent).toContain("Not confirmed: Dinner");
-    expect(dialog.textContent).toContain("Lunch");
-    expect(dialog.textContent).toContain("12:00–14:00");
+    expect(dialog.textContent).toContain("Lunch · 12:00–14:00");
     expect(dialog.textContent).toContain("Vegetable tart");
     expect(dialog.textContent).toContain("University card required");
     expect(dialog.textContent).toContain("Ask staff about allergens");
@@ -41,8 +40,43 @@ describe("college detail dialog", () => {
     expect(dialog.textContent).toContain("Price not publicly confirmed");
     expect(dialog.textContent).toContain("Freshness: Live");
     expect(dialog.querySelector('a[href*="google.com/maps/search"]')).not.toBeNull();
-    expect(dialog.querySelector('iframe[src*="google.com/maps"]')?.getAttribute("title")).toContain("Churchill College dining location map");
+    expect(dialog.querySelector("iframe")).toBeNull();
+    expect(dialog.querySelector('[data-meal="breakfast"]')).toBeNull();
+    expect(dialog.querySelector('[data-meal="brunch"]')).toBeNull();
+    const evidence = [...dialog.querySelectorAll("details")].find((details) => details.querySelector("summary")?.textContent === "Evidence, freshness, and source timestamps");
+    expect(evidence?.open).toBe(false);
+    expect(evidence?.textContent).toContain("Last checked");
+    expect(evidence?.textContent).toContain("Source modified");
+    expect(evidence?.textContent).toContain("Coverage");
+    expect(dialog.querySelector(".detail-overview")?.textContent).not.toContain("Last checked");
+    const officialUrl = collegeById("churchill").sources[0]!.url;
+    expect([...dialog.querySelectorAll<HTMLAnchorElement>(".evidence-link")].filter(({ href }) => href === officialUrl)).toHaveLength(1);
     expect(dialog.querySelector('a[href^="javascript:"]')).toBeNull();
+  });
+
+  it("shows both breakfast and brunch only when both are genuinely available", () => {
+    const ready = state();
+    if (ready.status !== "ready") throw new Error("expected ready state");
+    for (const type of ["breakfast", "brunch"] as const) {
+      ready.day.meals[type] = { ...ready.day.meals[type], availability: "available", time: type === "breakfast" ? "08:00–09:00" : "10:30–12:00" };
+    }
+    const dialog = appendDetailDialog(document.createElement("div"), ready, "2026-08-12", vi.fn());
+    expect(dialog.querySelector('[data-meal="breakfast"]')?.textContent).toContain("Breakfast · 08:00–09:00");
+    expect(dialog.querySelector('[data-meal="brunch"]')?.textContent).toContain("Brunch · 10:30–12:00");
+  });
+
+  it("limits visible menu items and combines meal notes with restrictions", () => {
+    const ready = state();
+    if (ready.status !== "ready") throw new Error("expected ready state");
+    ready.day.meals.lunch.menu = [{ kind: "items", items: ["One", "Two", "Three", "Four", "Five", "Six"] }];
+    const dialog = appendDetailDialog(document.createElement("div"), ready, "2026-08-12", vi.fn());
+    const lunch = dialog.querySelector<HTMLElement>('[data-meal="lunch"]')!;
+    expect(lunch.querySelectorAll(":scope > .detail-menu > ul > li")).toHaveLength(4);
+    expect(lunch.querySelector("details summary")?.textContent).toBe("Show 2 more items");
+    const notes = lunch.querySelector(".meal-notes-restrictions")?.textContent;
+    expect(notes).toContain("University card required");
+    expect(notes).toContain("Ask staff about allergens");
+    expect(lunch.textContent).not.toContain("Meal sources");
   });
 
   it("renders a source-error detail without manufacturing meal facts", () => {

@@ -114,18 +114,19 @@ function appendMeal(parent: HTMLElement, meal: MealRecord<MenuContent | MenuCont
   const section = element("section");
   section.className = "detail-meal";
   section.dataset.meal = meal.type;
-  section.append(element("h3", MEAL_LABEL[meal.type]));
-  const fields = element("dl");
-  field(fields, "Availability", "Available");
-  field(fields, "Time", meal.time);
-  section.append(fields);
+  section.append(element("h3", `${MEAL_LABEL[meal.type]} · ${meal.time}`));
   appendMenu(section, meal.menu);
-  section.append(element("h4", "Notes"), element("p", meal.notes.length > 0 ? meal.notes.join(" ") : "No special notes published"));
-  section.append(element("h4", "Restrictions and dietary information"), element("p", (meal.restrictions ?? []).length > 0 ? meal.restrictions!.join("; ") : "No special restrictions published"));
-  const sources = element("div");
-  sources.append(element("h4", "Meal sources"));
-  appendSourceLinks(sources, meal.sourceLinks);
-  section.append(sources);
+  const notes = meal.notes.filter((note) => note.trim() !== "");
+  const restrictions = (meal.restrictions ?? []).filter((restriction) => restriction.trim() !== "");
+  const combined = notes.length === 0 && restrictions.length === 0
+    ? "No special notes or restrictions published"
+    : [
+        ...(notes.length === 0 ? [] : [`Notes: ${notes.join(" ")}`]),
+        ...(restrictions.length === 0 ? [] : [`Restrictions: ${restrictions.join("; ")}`])
+      ].join(" ");
+  const note = element("p", combined);
+  note.className = "meal-notes-restrictions";
+  section.append(note);
   parent.append(section);
 }
 
@@ -150,27 +151,20 @@ function appendReady(parent: HTMLElement, day: DiningDay): void {
   parent.setAttribute("aria-labelledby", title.id);
 
   const overview = element("dl");
+  overview.className = "detail-overview";
   field(overview, "Dining area", day.location?.diningArea ?? "Dining area not published");
   field(overview, "Access", accessLabel(day.access?.classification ?? "unknown"));
-  field(overview, "Access explanation", day.access?.summary ?? "Access information not publicly confirmed");
-  field(overview, "Guest rules", day.access?.guestRules ?? "Guest rules not publicly confirmed");
+  field(overview, "Permission", [
+    day.access?.summary ?? "Access information not publicly confirmed",
+    day.access?.guestRules ?? "Guest rules not publicly confirmed"
+  ].join(" "));
   field(overview, "Payment", day.access?.payment ?? "Payment method not publicly confirmed");
   field(overview, "Term rule", day.termLabel ?? "Term dates not confirmed");
+  field(overview, "Indicative price", (day.prices ?? []).length === 0
+    ? "Price not publicly confirmed"
+    : (day.prices ?? []).map((price) => `${price.label}: ${price.amount} (${price.precision}; ${price.audience}; as of ${price.asOf})`).join("; "));
   field(overview, "Freshness", day.freshness === "live" ? "Live" : day.freshness === "scheduled" ? "Scheduled snapshot" : "Cached fallback");
-  field(overview, "Last checked", formatCambridgeTimestamp(day.fetchedAt));
-  field(overview, "Source modified", day.sourceModifiedAt === null ? "Not published" : formatCambridgeTimestamp(day.sourceModifiedAt));
   parent.append(overview);
-  if (day.collectionWarning !== undefined) parent.append(element("p", `Warning: ${day.collectionWarning}`));
-
-  const prices = element("section");
-  prices.append(element("h3", "Indicative prices"));
-  if ((day.prices ?? []).length === 0) prices.append(element("p", "Price not publicly confirmed"));
-  else {
-    const list = element("ul");
-    for (const price of day.prices ?? []) list.append(element("li", `${price.label}: ${price.amount} (${price.precision}; ${price.audience}; as of ${price.asOf})`));
-    prices.append(list);
-  }
-  parent.append(prices);
 
   const available = MEAL_TYPES.filter((type) => day.meals[type].availability === "available");
   const closed = MEAL_TYPES.filter((type) => day.meals[type].availability === "closed");
@@ -189,17 +183,25 @@ function appendReady(parent: HTMLElement, day: DiningDay): void {
   }
   parent.append(notices);
 
-  const map = element("iframe");
-  map.src = `https://www.google.com/maps?q=${mapQuery}&output=embed`;
-  map.title = `${day.collegeName} dining location map`;
-  map.loading = "lazy";
-  map.referrerPolicy = "no-referrer-when-downgrade";
-  parent.append(map);
-
-  const sources = element("section");
-  sources.append(element("h3", "Sources"));
-  appendSourceLinks(sources, [...day.sourceLinks, ...(day.access?.sourceLinks ?? [])]);
-  parent.append(sources);
+  const evidence = element("details");
+  evidence.className = "detail-evidence";
+  evidence.append(element("summary", "Evidence, freshness, and source timestamps"));
+  const metadata = element("dl");
+  field(metadata, "Last checked", formatCambridgeTimestamp(day.fetchedAt));
+  field(metadata, "Source modified", day.sourceModifiedAt === null ? "Not published" : formatCambridgeTimestamp(day.sourceModifiedAt));
+  field(metadata, "Coverage", day.coverage ?? "Not published");
+  field(metadata, "Collection warning", day.collectionWarning ?? "None published");
+  evidence.append(metadata, element("h3", "Verification links"));
+  appendSourceLinks(evidence, [
+    ...day.sourceLinks,
+    ...MEAL_TYPES.flatMap((type) => [
+      ...day.meals[type].sourceLinks,
+      ...(day.meals[type].serviceWindow?.source === undefined ? [] : [day.meals[type].serviceWindow.source])
+    ]),
+    ...(day.access?.sourceLinks ?? []),
+    ...(day.prices ?? []).map(({ source }) => source)
+  ]);
+  parent.append(evidence);
 }
 
 function focusable(dialog: HTMLDialogElement): HTMLElement[] {
