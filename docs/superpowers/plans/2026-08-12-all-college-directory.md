@@ -430,7 +430,7 @@ git commit -m "feat: orchestrate all college dining sources"
 - Consumes: `DashboardState`, `DiningDay`, and `CollegeViewState`.
 - Produces: `TableOptions`, `TableRowModel`, `tableRows(state, options)`, `servicesToday(day)`, and `nextMeal(day, nowMinutes?)`.
 
-- [ ] **Step 1: Write selector tests for ordering, summaries, combined filters, and errors**
+- [x] **Step 1: Write selector tests for ordering, summaries, combined filters, and errors**
 
 ```ts
 it("starts with 31 alphabetical rows and keeps unknown colleges visible", () => {
@@ -445,13 +445,13 @@ it("requires affirmative evidence for serving, menu, and unhosted filters", () =
 });
 ```
 
-- [ ] **Step 2: Run the selector suite and verify RED**
+- [x] **Step 2: Run the selector suite and verify RED**
 
 Run: `npm test -- tests/ui/table-model.test.ts`
 
 Expected: FAIL because `table-model.ts` does not exist.
 
-- [ ] **Step 3: Implement deterministic row derivation**
+- [x] **Step 3: Implement deterministic row derivation**
 
 ```ts
 export interface TableOptions {
@@ -467,13 +467,13 @@ export interface TableOptions {
 
 For ready days, derive affirmative booleans from meal/access data. For loading/error states, preserve the row with readable summary text. Search normalized college and dining-area names. Apply all active filters as AND conditions, then use a stable `en-GB` sort with college name as the tie-breaker. `nextMeal` compares published 24-hour start times; if no parseable future service exists, return `No later published service`.
 
-- [ ] **Step 4: Run selector and type tests**
+- [x] **Step 4: Run selector and type tests**
 
 Run: `npm test -- tests/ui/table-model.test.ts && npm run typecheck`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit the table model**
+- [x] **Step 5: Commit the table model**
 
 ```bash
 git add src/ui/table-model.ts tests/ui/table-model.test.ts
