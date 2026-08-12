@@ -1,5 +1,5 @@
 import { fullTermApplicability } from "./dates";
-import type { IsoDate, MealRecord, ServiceWindow, SourceLink } from "./types";
+import type { IsoDate, MealRecord, MenuContent, ServiceWindow, SourceLink } from "./types";
 
 export type WindowApplicability = "applicable" | "outside" | "unknown";
 
@@ -22,8 +22,11 @@ function appendSourceOnce(sources: SourceLink[], source: SourceLink | undefined)
   return [...sources, source];
 }
 
-export function effectiveMealForDate<T extends MealRecord>(meal: T, date: IsoDate): T {
-  const effective: T = {
+export function effectiveMealForDate<TMenu extends MenuContent | MenuContent[]>(
+  meal: MealRecord<TMenu>,
+  date: IsoDate
+): MealRecord<TMenu> {
+  const effective: MealRecord<TMenu> = {
     ...meal,
     notes: [...meal.notes],
     ...(meal.restrictions === undefined ? {} : { restrictions: [...meal.restrictions] }),

@@ -17,7 +17,8 @@ export function unknownDiningDay(
       menu: [{ kind: "message", message: "Menu not publicly confirmed" }],
       notes: [],
       restrictions: [],
-      sourceLinks: profile.sources
+      sourceLinks: profile.sources,
+      ...(profile.serviceWindows?.[type] === undefined ? {} : { serviceWindow: profile.serviceWindows[type] })
     };
   }
 
