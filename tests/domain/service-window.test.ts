@@ -74,4 +74,12 @@ describe("effectiveMealForDate", () => {
     original.availability = "unknown";
     expect(effectiveMealForDate(original, "2026-08-12").availability).toBe("unknown");
   });
+
+  it("renders a published term-only service closed outside Full Term even when its menu is unknown", () => {
+    const original = meal({ kind: "full-term-only", source: termSource });
+    original.availability = "unknown";
+    const effective = effectiveMealForDate(original, "2026-08-12");
+    expect(effective.availability).toBe("closed");
+    expect(effective.notes).toContain("Published for Full Term only");
+  });
 });

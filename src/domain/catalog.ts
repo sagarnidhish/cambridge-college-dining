@@ -1,4 +1,4 @@
-import type { AccessClass, AccessGuidance, CollegeId, CollegeProfile, EvidenceKind, MealType, PriceQuote, RecurringService, ServiceWindow, SourceLink, Weekday } from "./types";
+import type { AccessClass, AccessGuidance, CollegeId, CollegeProfile, EvidenceKind, MealType, PriceQuote, ServiceWindow, SourceLink } from "./types";
 import { COLLEGE_IDS } from "./types";
 
 const official = (label: string, url: string, evidence: EvidenceKind = "official-college", asOf?: string): SourceLink => ({
@@ -18,7 +18,6 @@ function profile(
     access?: AccessGuidance;
     prices?: PriceQuote[];
     serviceWindows?: Partial<Record<MealType, ServiceWindow>>;
-    recurringServices?: RecurringService[];
   } = {}
 ): CollegeProfile {
   const access = options.access ?? guidance("unknown", sources);
@@ -31,8 +30,7 @@ function profile(
     sources,
     access,
     prices: options.prices ?? [],
-    ...(options.serviceWindows === undefined ? {} : { serviceWindows: options.serviceWindows }),
-    ...(options.recurringServices === undefined ? {} : { recurringServices: options.recurringServices })
+    ...(options.serviceWindows === undefined ? {} : { serviceWindows: options.serviceWindows })
   };
 }
 
@@ -59,15 +57,6 @@ function quote(
   source: SourceLink
 ): PriceQuote {
   return { label, amount, precision, audience, asOf, source };
-}
-
-function recurring(
-  type: MealType,
-  weekdays: Weekday[],
-  time: string,
-  serviceWindow: ServiceWindow
-): RecurringService {
-  return { type, weekdays, time, serviceWindow };
 }
 
 const CHRISTS_MEALS = official("Meals", "https://www.christs.cam.ac.uk/student-life/meals", "official-college", "2026-08-12");
@@ -106,14 +95,7 @@ export const COLLEGES: readonly CollegeProfile[] = [
       "Christ's documents member-hosted Formal Hall guests, but does not publicly confirm guest access to the everyday Upper Hall canteen.",
       "Use a Christ's member and the formal booking route for Formal Hall; verify Upper Hall separately.",
       "Upper Hall purchases use a University Card and are charged to the Christ's member's College bill."
-    ),
-    serviceWindows: windows("full-term-only", CHRISTS_MEALS, ["breakfast", "brunch", "lunch", "dinner"]),
-    recurringServices: [
-      recurring("breakfast", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "08:15–09:30", { kind: "full-term-only", source: CHRISTS_MEALS }),
-      recurring("lunch", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "12:00–13:45", { kind: "full-term-only", source: CHRISTS_MEALS }),
-      recurring("brunch", ["Saturday", "Sunday"], "10:30–12:30", { kind: "full-term-only", source: CHRISTS_MEALS }),
-      recurring("dinner", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], "17:50–19:00", { kind: "full-term-only", source: CHRISTS_MEALS })
-    ]
+    )
   }),
   profile("churchill", "Churchill College", "Dining Hall", "direct", [CHURCHILL_MENU, CHURCHILL_DINING, CHURCHILL_GUESTS], {
     access: guidance(
@@ -133,14 +115,7 @@ export const COLLEGES: readonly CollegeProfile[] = [
       "Formal Hall guest arrangements do not establish everyday Buttery access.",
       "Clare members use their University Card and charges go to their College bill."
     ),
-    prices: [quote("Typical Buttery meal", "about £5–£7", "approximate", "Clare members", "2026-08-12", CLARE_UCS)],
-    serviceWindows: windows("full-term-only", CLARE_UCS, ["breakfast", "brunch", "lunch", "dinner"]),
-    recurringServices: [
-      recurring("breakfast", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "08:00–09:00", { kind: "full-term-only", source: CLARE_UCS }),
-      recurring("lunch", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "12:30–13:30", { kind: "full-term-only", source: CLARE_UCS }),
-      recurring("dinner", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], "18:15–19:15", { kind: "full-term-only", source: CLARE_UCS }),
-      recurring("brunch", ["Saturday"], "12:30–13:30", { kind: "full-term-only", source: CLARE_UCS })
-    ]
+    prices: [quote("Typical Buttery meal", "about £5–£7", "approximate", "Clare members", "2026-08-12", CLARE_UCS)]
   }),
   profile("clare-hall", "Clare Hall", "Dining Hall", "scheduled", [CLARE_HALL_DINING], {
     access: guidance(
@@ -150,11 +125,7 @@ export const COLLEGES: readonly CollegeProfile[] = [
       "Guest meals are paid from the host's Upay account; other groups should contact the College before attending.",
       "Members pay through Upay; cash and direct card payments are not accepted in the Dining Hall."
     ),
-    serviceWindows: windows("year-round", CLARE_HALL_DINING, ["lunch", "dinner"]),
-    recurringServices: [
-      recurring("lunch", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "12:00–13:30", { kind: "year-round", source: CLARE_HALL_DINING }),
-      recurring("dinner", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "18:00–19:00", { kind: "year-round", source: CLARE_HALL_DINING })
-    ]
+    serviceWindows: windows("year-round", CLARE_HALL_DINING, ["lunch", "dinner"])
   }),
   profile("corpus-christi", "Corpus Christi", "Hall", "scheduled", [
     official("Food and dining", "https://www.corpus.cam.ac.uk/undergraduate-study/living-corpus/food-and-dining"),
@@ -169,13 +140,7 @@ export const COLLEGES: readonly CollegeProfile[] = [
       "Guests may pay by credit or debit card and are charged a 60% surcharge."
     ),
     prices: [quote("Guest surcharge", "+60%", "exact", "Guests", "2026-08-12", CORPUS_JCR)],
-    serviceWindows: windows("full-term-only", CORPUS_JCR, ["breakfast", "brunch", "lunch", "dinner"]),
-    recurringServices: [
-      recurring("breakfast", ["Tuesday", "Thursday"], "08:15–09:15", { kind: "full-term-only", source: CORPUS_JCR }),
-      recurring("brunch", ["Saturday", "Sunday"], "11:30–13:00", { kind: "full-term-only", source: CORPUS_JCR }),
-      recurring("lunch", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "12:00–13:30", { kind: "full-term-only", source: CORPUS_JCR }),
-      recurring("dinner", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sunday"], "17:45–18:45", { kind: "full-term-only", source: CORPUS_JCR })
-    ]
+    serviceWindows: windows("full-term-only", CORPUS_JCR, ["breakfast", "brunch", "lunch", "dinner"])
   }),
   profile("darwin", "Darwin College", "Dining Hall", "direct", [
     official("Dine", "https://www.darwin.cam.ac.uk/dine/"),
@@ -309,12 +274,7 @@ export const COLLEGES: readonly CollegeProfile[] = [
       quote("Main course range", "£4.25–£4.70", "exact", "Non-members", "2026-08-12", ROBINSON_PRICES),
       quote("Weekend brunch", "£7.15", "exact", "Non-members", "2026-08-12", ROBINSON_PRICES)
     ],
-    serviceWindows: windows("full-term-only", ROBINSON_HOURS, ["brunch", "lunch", "dinner"]),
-    recurringServices: [
-      recurring("lunch", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "12:20–13:40", { kind: "full-term-only", source: ROBINSON_HOURS }),
-      recurring("dinner", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "18:00–19:15", { kind: "full-term-only", source: ROBINSON_HOURS }),
-      recurring("brunch", ["Saturday", "Sunday"], "12:00–13:30", { kind: "full-term-only", source: ROBINSON_HOURS })
-    ]
+    serviceWindows: windows("full-term-only", ROBINSON_HOURS, ["brunch", "lunch", "dinner"])
   }),
   profile("selwyn", "Selwyn College", "Hall", "scheduled", [official("Hall menu", "https://www.sel.cam.ac.uk/current-members/hall-menu")]),
   profile("sidney-sussex", "Sidney Sussex College", "Hall", "scheduled", [SIDNEY_HALL, SIDNEY_FINANCE], {

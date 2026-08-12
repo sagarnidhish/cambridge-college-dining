@@ -49,6 +49,11 @@ describe("Downing live source", () => {
       throw new Error(`Unexpected URL ${url}`);
     }) as unknown as typeof fetch;
     await expect(fetchDowningSnapshot(fetchImpl)).resolves.toEqual({ base: DOWNING_BASE_FIXTURE, menu: DOWNING_SEARCH_FIXTURE });
-    expect(fetchImpl).toHaveBeenLastCalledWith(downingSearchApi(4095), expect.objectContaining({ method: "POST", body: "{}", cache: "no-store" }));
+    expect(fetchImpl).toHaveBeenLastCalledWith(downingSearchApi(4095), expect.objectContaining({
+      method: "POST",
+      body: "{}",
+      cache: "no-store",
+      headers: expect.objectContaining({ "Content-Type": "text/plain;charset=UTF-8" })
+    }));
   });
 });

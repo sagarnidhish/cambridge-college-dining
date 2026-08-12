@@ -64,6 +64,7 @@ describe("eatability panel", () => {
     appendEatabilityPanel(root, dashboard({ downing: ready("downing", "unhosted-cambridge", "lunch", "12:30–13:30") }), null, { focusCollege: vi.fn(), openCollege });
     root.querySelector<HTMLButtonElement>('[data-map-details="downing"]')!.click();
     expect(openCollege).toHaveBeenCalledWith("downing");
+    expect(root.querySelector<HTMLButtonElement>('[data-map-details="downing"]')?.dataset.focusKey).toBe("map-details-downing");
   });
 
   it("shows an honest empty state without an arbitrary map", () => {
@@ -71,5 +72,16 @@ describe("eatability panel", () => {
     appendEatabilityPanel(root, dashboard({}), null, { focusCollege: vi.fn(), openCollege: vi.fn() });
     expect(root.textContent).toContain("No option confirmed from current public evidence");
     expect(root.querySelector("iframe")).toBeNull();
+  });
+
+  it("distinguishes loading from a completed no-evidence result", () => {
+    const root = document.createElement("div");
+    appendEatabilityPanel(root, dashboard({
+      churchill: { status: "loading", college: "churchill", collegeName: "Churchill College" }
+    }), null, { focusCollege: vi.fn(), openCollege: vi.fn() });
+
+    expect(root.textContent).toContain("Loading current public dining evidence");
+    expect(root.textContent).not.toContain("No option confirmed from current public evidence");
+    expect(root.textContent).not.toContain("No source-confirmed options in this tier");
   });
 });

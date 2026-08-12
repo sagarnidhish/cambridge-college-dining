@@ -1,4 +1,5 @@
 import { COLLEGES } from "../domain/catalog";
+import { effectiveMealForDate } from "../domain/service-window";
 import { MEAL_TYPES, type AccessClass, type CollegeId, type CollegeViewState, type DashboardState, type DiningDay, type MealType, type MenuContent } from "../domain/types";
 
 export type TableSort = "college" | "services" | "next" | "access" | "price" | "freshness";
@@ -68,14 +69,14 @@ function startMinutes(time: string): number | null {
 }
 
 export function servicesToday(day: DiningDay): string {
-  const available = MEAL_TYPES.filter((type) => day.meals[type].availability === "available");
+  const available = MEAL_TYPES.filter((type) => effectiveMealForDate(day.meals[type], day.date).availability === "available");
   if (available.length > 0) return available.map((type, index) => index === 0 ? MEAL_LABEL[type] : MEAL_LABEL[type].toLocaleLowerCase("en-GB")).join(", ");
-  return MEAL_TYPES.every((type) => day.meals[type].availability === "closed") ? "Closed" : "Not confirmed";
+  return MEAL_TYPES.every((type) => effectiveMealForDate(day.meals[type], day.date).availability === "closed") ? "Closed" : "Not confirmed";
 }
 
 export function nextMeal(day: DiningDay, nowMinutes = -1): NextMealSummary {
   const candidates = MEAL_TYPES.flatMap((type) => {
-    const meal = day.meals[type];
+    const meal = effectiveMealForDate(day.meals[type], day.date);
     const minutes = meal.availability === "available" ? startMinutes(meal.time) : null;
     return minutes !== null && minutes >= nowMinutes ? [{ label: MEAL_LABEL[type], time: meal.time, sortMinutes: minutes }] : [];
   }).sort((left, right) => left.sortMinutes - right.sortMinutes);
@@ -123,8 +124,11 @@ function readyRow(state: Extract<CollegeViewState, { status: "ready" }>): TableR
     priceSort: price.sort,
     freshness: freshness.text,
     freshnessSort: freshness.rank,
-    isServing: MEAL_TYPES.some((type) => day.meals[type].availability === "available"),
-    hasPublishedMenu: MEAL_TYPES.some((type) => menuEntries(day.meals[type].menu).some(({ kind }) => kind !== "message"))
+    isServing: MEAL_TYPES.some((type) => effectiveMealForDate(day.meals[type], day.date).availability === "available"),
+    hasPublishedMenu: MEAL_TYPES.some((type) => {
+      const meal = effectiveMealForDate(day.meals[type], day.date);
+      return meal.availability === "available" && menuEntries(meal.menu).some(({ kind }) => kind !== "message");
+    })
   };
 }
 

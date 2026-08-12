@@ -13,6 +13,7 @@ export function serviceWindowApplicability(
   if (window.kind === "date-range") {
     return date >= window.validFrom && date <= window.validThrough ? "applicable" : "outside";
   }
+  if (window.kind !== "full-term-only") return "unknown";
   const term = fullTermApplicability(date);
   return term === "inside" ? "applicable" : term === "outside" ? "outside" : "unknown";
 }
@@ -33,9 +34,10 @@ export function effectiveMealForDate<TMenu extends MenuContent | MenuContent[]>(
     sourceLinks: [...meal.sourceLinks]
   };
   const applicability = serviceWindowApplicability(meal.serviceWindow, date);
-  if (applicability === "applicable" || meal.availability !== "available") return effective;
+  if (applicability === "applicable") return effective;
 
   if (applicability === "outside") {
+    if (meal.availability === "closed") return effective;
     effective.availability = "closed";
     effective.notes = [...effective.notes, meal.serviceWindow?.kind === "full-term-only"
       ? "Published for Full Term only"
@@ -43,6 +45,8 @@ export function effectiveMealForDate<TMenu extends MenuContent | MenuContent[]>(
     effective.sourceLinks = appendSourceOnce(effective.sourceLinks, meal.serviceWindow?.source);
     return effective;
   }
+
+  if (meal.availability !== "available") return effective;
 
   if (meal.serviceWindow?.kind === "full-term-only") {
     effective.availability = "unknown";

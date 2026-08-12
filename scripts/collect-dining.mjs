@@ -2,6 +2,7 @@ import { readFile, rename, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { SCHEDULED_SOURCES } from "./collector/catalog.mjs";
 import { mergeCollection } from "./collector/merge.mjs";
+import { parseScheduledSource } from "./collector/parsers.mjs";
 import { validateSnapshot } from "./collector/validate.mjs";
 
 const USER_AGENT = "cambridge-college-dining/0.2 (+https://github.com/sagarnidhish/cambridge-college-dining)";
@@ -18,7 +19,7 @@ function argumentsFrom(values) {
   return result;
 }
 
-async function validateLink(source) {
+async function validateLink(source, collectedAt) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15_000);
   try {
@@ -29,9 +30,14 @@ async function validateLink(source) {
       headers: { "User-Agent": USER_AGENT, Accept: "text/html,application/pdf;q=0.9,*/*;q=0.5" },
       signal: controller.signal
     });
-    await response.body?.cancel();
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     if (new URL(response.url).protocol !== "https:") throw new Error("Redirected to a non-HTTPS URL");
+    if (source.parser !== undefined) {
+      const contentType = response.headers.get("Content-Type") ?? "";
+      if (!/text\/html/i.test(contentType)) throw new Error("Expected an HTML dining page");
+      return { ok: true, parsed: parseScheduledSource(source, await response.text(), collectedAt) };
+    }
+    await response.body?.cancel();
     return { ok: true };
   } catch (error) {
     return { ok: false, warning: error instanceof Error ? error.message : String(error) };
@@ -55,14 +61,17 @@ async function boundedMap(values, concurrency, operation) {
 
 export async function collect(previousValue, collectedAt = new Date().toISOString()) {
   const previous = validateSnapshot(previousValue);
-  const results = await boundedMap(SCHEDULED_SOURCES, 2, validateLink);
+  const results = await boundedMap(SCHEDULED_SOURCES, 2, (source) => validateLink(source, collectedAt));
   const attempts = new Map();
   for (let index = 0; index < SCHEDULED_SOURCES.length; index += 1) {
     const source = SCHEDULED_SOURCES[index];
     const result = results[index];
     if (source === undefined || result === undefined) throw new Error("Collector result alignment failure");
     if (result.ok) {
-      attempts.set(source.id, { ok: true, record: { ...previous.colleges[source.id], collectedAt } });
+      attempts.set(source.id, {
+        ok: true,
+        record: { ...previous.colleges[source.id], ...(result.parsed ?? {}), college: source.id, collectedAt }
+      });
       process.stdout.write(`OK ${source.name}: ${source.url}\n`);
     } else {
       attempts.set(source.id, { ok: false, warning: result.warning });

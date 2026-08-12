@@ -31,7 +31,7 @@ Four colleges use structured public browser sources on page load and Refresh:
 - Downing: official public Kafoodle menu data. The feed groups items by weekday but does not separate lunch from dinner; that limitation is displayed.
 - St Edmund's: official WordPress weekly menu posts and catering timetable.
 
-The other 27 colleges use the checked-in, schema-validated `public/data/college-dining.json` snapshot. The daily collector validates each primary HTTPS source with ordinary public access, at most two simultaneous requests, a 15-second timeout, no credentials, and no protection bypass. A failed college retains its previous record and timestamp with a warning. A link check alone never promotes a college to menu coverage.
+The other 27 colleges use the checked-in, schema-validated `public/data/college-dining.json` snapshot. The daily collector validates each primary HTTPS source with ordinary public access, at most two simultaneous requests, a 15-second timeout, no credentials, and no protection bypass. Guarded parsers currently extract recurring service evidence for Christ's, Clare, Clare Hall, Corpus Christi, and Robinson; uncertain applicability remains Unknown, and exact Full Term closure rules are used only where the cited page explicitly says Full Term. A failed college or parser drift retains its previous record and timestamp with a warning. A link check alone never promotes a college to schedule or menu coverage.
 
 Freshness labels mean:
 

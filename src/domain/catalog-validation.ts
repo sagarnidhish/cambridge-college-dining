@@ -47,13 +47,6 @@ export function validateCollegeProfiles(profiles: readonly CollegeProfile[]): st
       if (source === undefined || !isHttps(source)) errors.push(`${prefix}: ${meal} service window has no HTTPS source`);
       if (window.kind === "date-range" && window.validFrom > window.validThrough) errors.push(`${prefix}: ${meal} service range is reversed`);
     }
-
-    for (const service of profile.recurringServices ?? []) {
-      const source = serviceSource(service.serviceWindow);
-      if (service.weekdays.length === 0) errors.push(`${prefix}: ${service.type} recurring service has no weekday`);
-      if (service.time.trim() === "") errors.push(`${prefix}: ${service.type} recurring service has no time`);
-      if (source === undefined || !isHttps(source)) errors.push(`${prefix}: ${service.type} recurring service has no HTTPS source`);
-    }
   }
   return errors;
 }

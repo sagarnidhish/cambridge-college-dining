@@ -82,13 +82,6 @@ export interface PriceQuote {
   source: SourceLink;
 }
 
-export interface RecurringService {
-  type: MealType;
-  weekdays: Weekday[];
-  time: string;
-  serviceWindow: ServiceWindow;
-}
-
 export interface CollegeProfile {
   id: CollegeId;
   name: string;
@@ -99,7 +92,6 @@ export interface CollegeProfile {
   access: AccessGuidance;
   prices: PriceQuote[];
   serviceWindows?: Partial<Record<MealType, ServiceWindow>>;
-  recurringServices?: RecurringService[];
 }
 
 export interface MealRecord<TMenu extends MenuContent | MenuContent[] = MenuContent> {

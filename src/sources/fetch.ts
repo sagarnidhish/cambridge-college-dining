@@ -82,7 +82,7 @@ async function postJson(fetchImpl: typeof fetch, url: string): Promise<unknown> 
   const response = await fetchImpl(url, {
     ...requestInit,
     method: "POST",
-    headers: { ...requestInit.headers, "Content-Type": "application/json" },
+    headers: { ...requestInit.headers, "Content-Type": "text/plain;charset=UTF-8" },
     body: "{}"
   });
   if (!response.ok) throw new Error(`Official source request failed (${response.status})`);

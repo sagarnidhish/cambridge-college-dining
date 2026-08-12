@@ -1,8 +1,8 @@
 export const SCHEDULED_SOURCES = [
-  ["christs", "Christ's College", "https://www.christs.cam.ac.uk/student-life/meals"],
-  ["clare", "Clare College", "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/"],
-  ["clare-hall", "Clare Hall", "https://www.clarehall.cam.ac.uk/dining/"],
-  ["corpus-christi", "Corpus Christi", "https://www.jcr.corpus.cam.ac.uk/catering"],
+  ["christs", "Christ's College", "https://www.christs.cam.ac.uk/student-life/meals", "christs", "official-college"],
+  ["clare", "Clare College", "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/", "clare", "official-student-body"],
+  ["clare-hall", "Clare Hall", "https://www.clarehall.cam.ac.uk/dining/", "clare-hall", "official-college"],
+  ["corpus-christi", "Corpus Christi", "https://www.jcr.corpus.cam.ac.uk/catering", "corpus-christi", "official-student-body"],
   ["emmanuel", "Emmanuel College", "https://www.emma.cam.ac.uk/explore/life"],
   ["fitzwilliam", "Fitzwilliam College", "https://www.undergraduate.study.cam.ac.uk/colleges/fitzwilliam-college"],
   ["girton", "Girton College", "https://www.girton.cam.ac.uk/dining-and-socialising"],
@@ -18,7 +18,7 @@ export const SCHEDULED_SOURCES = [
   ["pembroke", "Pembroke College", "https://www.pem.cam.ac.uk/college/catering/information-students/servery-menu"],
   ["peterhouse", "Peterhouse", "https://www.undergraduate.study.cam.ac.uk/colleges/peterhouse"],
   ["queens", "Queens' College", "https://www.queens.cam.ac.uk/life-at-queens/catering/dining-hall/weekly-menu/"],
-  ["robinson", "Robinson College", "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours"],
+  ["robinson", "Robinson College", "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours", "robinson", "official-college"],
   ["selwyn", "Selwyn College", "https://www.sel.cam.ac.uk/current-members/hall-menu"],
   ["sidney-sussex", "Sidney Sussex College", "https://sscsu.org.uk/hall"],
   ["st-catharines", "St Catharine's College", "https://mcr.caths.cam.ac.uk/current-students/hall-times"],
@@ -26,6 +26,6 @@ export const SCHEDULED_SOURCES = [
   ["trinity", "Trinity College", "https://www.trin.cam.ac.uk/access/outreach-home/student-experiences-at-trinity/"],
   ["trinity-hall", "Trinity Hall", "https://www.trinhall.cam.ac.uk/study-with-us/life-trinity-hall/food-and-drink/"],
   ["wolfson", "Wolfson College", "https://www.wolfson.cam.ac.uk/food/cafeteria-menus"]
-].map(([id, name, url]) => ({ id, name, url }));
+].map(([id, name, url, parser, evidence]) => ({ id, name, url, ...(parser === undefined ? {} : { parser, evidence }) }));
 
 export const SCHEDULED_COLLEGE_IDS = SCHEDULED_SOURCES.map(({ id }) => id);

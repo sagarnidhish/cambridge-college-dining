@@ -35,7 +35,8 @@ describe("catalog evidence validation", () => {
     expect(collegeById("darwin").prices).toEqual(expect.arrayContaining([
       expect.objectContaining({ amount: "£2.90–£4.75", precision: "exact" })
     ]));
-    expect(collegeById("christs").serviceWindows?.lunch?.kind).toBe("full-term-only");
+    expect(collegeById("christs").serviceWindows?.lunch).toBeUndefined();
+    expect(collegeById("clare").serviceWindows?.lunch).toBeUndefined();
     expect(collegeById("robinson").serviceWindows?.dinner?.kind).toBe("full-term-only");
     expect(collegeById("kings").serviceWindows?.brunch?.kind).toBe("full-term-only");
   });
@@ -47,23 +48,5 @@ describe("catalog evidence validation", () => {
     expect(collegeById("queens").access.classification).toBe("guest-required");
     expect(collegeById("pembroke").access.classification).toBe("guest-required");
     expect(collegeById("st-johns").access.classification).toBe("unknown");
-  });
-
-  it("rejects unusable authored recurring-service evidence", () => {
-    const invalid = {
-      ...collegeById("robinson"),
-      recurringServices: [{
-        type: "lunch" as const,
-        weekdays: [],
-        time: "",
-        serviceWindow: { kind: "unknown" as const }
-      }]
-    };
-
-    expect(validateCollegeProfiles([invalid])).toEqual(expect.arrayContaining([
-      "robinson: lunch recurring service has no weekday",
-      "robinson: lunch recurring service has no time",
-      "robinson: lunch recurring service has no HTTPS source"
-    ]));
   });
 });

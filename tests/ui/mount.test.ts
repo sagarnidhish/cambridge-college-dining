@@ -123,6 +123,31 @@ describe("mountDashboard", () => {
     }
   });
 
+  it("restores focus to the eligibility-panel details button that opened the dialog", async () => {
+    const evidence = { label: "Dining evidence", url: "https://example.edu/dining", evidence: "official-college" as const };
+    const eligible = (date: IsoDate): DashboardState => {
+      const result = state(date);
+      const profile = collegeById("churchill");
+      const day = unknownDiningDay(profile, date, `${date}T08:00:00.000Z`, "live");
+      day.meals.lunch = { ...day.meals.lunch, availability: "available", time: "12:00–13:00", serviceWindow: { kind: "date-specific", date, source: evidence } };
+      result.colleges.churchill = { status: "ready", day };
+      return result;
+    };
+    history.replaceState({}, "", "/?view=directory");
+    const root = await mounted({ refresh: async (date) => eligible(date), selectDate: (date) => eligible(date) });
+    document.body.append(root);
+    try {
+      const opener = root.querySelector<HTMLButtonElement>('[data-map-details="churchill"]')!;
+      opener.focus();
+      opener.click();
+      root.querySelector<HTMLButtonElement>('dialog button[name="close-details"]')!.click();
+      expect(document.activeElement).toBe(root.querySelector('[data-map-details="churchill"]'));
+    } finally {
+      history.replaceState({}, "", "/");
+      root.remove();
+    }
+  });
+
   it("reconciles map focus when the selected college is no longer eligible", async () => {
     const evidence = { label: "Dining evidence", url: "https://example.edu/dining", evidence: "official-college" as const };
     const eligible = (date: IsoDate, ids: CollegeId[]): DashboardState => {

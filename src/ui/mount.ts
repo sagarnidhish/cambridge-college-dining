@@ -30,6 +30,7 @@ export async function mountDashboard(
   let selectedCollege: CollegeId | null = collegeFromLocation(window.location);
   let view: AppView = viewFromLocation(window.location);
   let lastSelectedCollege: CollegeId | null = selectedCollege;
+  let lastDialogOpenerFocusKey: string | null = null;
   let refreshGeneration = 0;
 
   const render = (): void => {
@@ -88,6 +89,10 @@ export async function mountDashboard(
       render();
     },
     openCollege: (college) => {
+      const active = document.activeElement;
+      lastDialogOpenerFocusKey = active instanceof HTMLElement && root.contains(active)
+        ? active.dataset.focusKey ?? null
+        : null;
       selectedCollege = college;
       lastSelectedCollege = college;
       setCollegeInHistory(college, "push");
@@ -98,7 +103,12 @@ export async function mountDashboard(
       selectedCollege = null;
       setCollegeInHistory(null, "push");
       render();
-      if (restore !== null) root.querySelector<HTMLButtonElement>(`[data-college="${restore}"]`)?.focus();
+      const opener = lastDialogOpenerFocusKey === null
+        ? null
+        : root.querySelector<HTMLElement>(`[data-focus-key="${lastDialogOpenerFocusKey}"]`);
+      opener?.focus();
+      if (opener === null && restore !== null) root.querySelector<HTMLButtonElement>(`[data-college="${restore}"]`)?.focus();
+      lastDialogOpenerFocusKey = null;
     }
   };
 

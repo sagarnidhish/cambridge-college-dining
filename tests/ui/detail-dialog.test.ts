@@ -65,6 +65,19 @@ describe("college detail dialog", () => {
     expect(dialog.querySelector('[data-meal="brunch"]')?.textContent).toContain("Brunch · 10:30–12:00");
   });
 
+  it("applies service windows before rendering meal details", () => {
+    const ready = state();
+    if (ready.status !== "ready") throw new Error("expected ready state");
+    ready.day.meals.lunch.serviceWindow = {
+      kind: "full-term-only",
+      source: collegeById("christs").sources[0]!
+    };
+    const dialog = appendDetailDialog(document.createElement("div"), ready, "2026-08-12", vi.fn());
+
+    expect(dialog.textContent).toContain("Closed today: Breakfast, brunch; Lunch — published for Full Term only.");
+    expect(dialog.querySelector('[data-meal="lunch"]')).toBeNull();
+  });
+
   it("limits visible menu items and combines meal notes with restrictions", () => {
     const ready = state();
     if (ready.status !== "ready") throw new Error("expected ready state");

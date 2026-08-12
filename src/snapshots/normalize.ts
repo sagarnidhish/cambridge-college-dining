@@ -1,6 +1,5 @@
 import { unknownDiningDay } from "../domain/fallback-day";
 import { weekdayForIso } from "../domain/dates";
-import { serviceWindowApplicability } from "../domain/service-window";
 import type { CollegeProfile, DiningDay, IsoDate, MealRecord, MealType, MenuContent } from "../domain/types";
 import type { ScheduledSnapshot, SnapshotMeal } from "./schema";
 
@@ -22,21 +21,6 @@ function normalizedMeal(type: MealType, meal: SnapshotMeal, profile: CollegeProf
   };
 }
 
-function authoredMeal(profile: CollegeProfile, service: NonNullable<CollegeProfile["recurringServices"]>[number]): MealRecord<MenuContent[]> {
-  const source = service.serviceWindow.source;
-  if (source === undefined) throw new Error(`${profile.name} recurring service is missing a source`);
-  return {
-    type: service.type,
-    availability: "available",
-    time: service.time,
-    menu: [{ kind: "link", label: `Check ${profile.name}'s current dining information`, url: source.url }],
-    notes: ["Published recurring hours; verify the official source for closures or changes before travelling."],
-    restrictions: ["Ask catering staff about current allergens and dietary requirements."],
-    sourceLinks: [source],
-    serviceWindow: service.serviceWindow
-  };
-}
-
 export function scheduledDayFor(snapshot: ScheduledSnapshot, profile: CollegeProfile, date: IsoDate): DiningDay<MenuContent[]> {
   if (profile.retrieval !== "scheduled") {
     throw new Error(`${profile.name} is not a scheduled source`);
@@ -46,13 +30,11 @@ export function scheduledDayFor(snapshot: ScheduledSnapshot, profile: CollegePro
     throw new Error(`Scheduled snapshot is missing ${profile.id}`);
   }
   const day = unknownDiningDay(profile, date, source.collectedAt, "scheduled", source.warning);
-  let authoredScheduleApplied = false;
   if (withinValidity(date, source.validFrom, source.validThrough)) {
     const weekday = weekdayForIso(date);
-    for (const service of profile.recurringServices ?? []) {
-      if (service.weekdays.some((candidate) => candidate === weekday) && serviceWindowApplicability(service.serviceWindow, date) === "applicable") {
-        day.meals[service.type] = authoredMeal(profile, service);
-        authoredScheduleApplied = true;
+    for (const service of source.weeklyServices) {
+      if (service.weekdays.some((candidate) => candidate === weekday)) {
+        day.meals[service.type] = normalizedMeal(service.type, service, profile);
       }
     }
     for (const [type, meal] of Object.entries(source.recurringMeals)) {
@@ -64,7 +46,7 @@ export function scheduledDayFor(snapshot: ScheduledSnapshot, profile: CollegePro
   }
   return {
     ...day,
-    coverage: authoredScheduleApplied && source.coverage === "link-only" ? "schedule" : source.coverage,
+    coverage: source.coverage,
     notices: source.notices,
     sourceModifiedAt: source.sourceModifiedAt
   };

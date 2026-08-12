@@ -47,4 +47,21 @@ describe("collector validation", () => {
       }
     })).toThrow(/HTTPS/i);
   });
+
+  it("rejects invalid service windows before collection output is published", () => {
+    const attempt = scheduledSnapshotFixture().colleges.robinson!;
+    expect(() => validateCollegeAttempt({
+      ...attempt,
+      recurringMeals: {
+        lunch: {
+          availability: "available",
+          time: "12:20–13:40",
+          menu: { kind: "message", message: "Published schedule" },
+          notes: [],
+          sourceLinks: [],
+          serviceWindow: { kind: "date-specific", date: "not-a-date", source: { label: "Hours", url: "https://example.test/hours" } }
+        }
+      }
+    })).toThrow(/service window/i);
+  });
 });

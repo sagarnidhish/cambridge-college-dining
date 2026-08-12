@@ -1,55 +1,617 @@
 {
   "schemaVersion": 2,
-  "collectedAt": "2026-08-12T16:25:03.443Z",
+  "collectedAt": "2026-08-12T17:27:17.015Z",
   "colleges": {
     "christs": {
       "college": "christs",
-      "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "coverage": "schedule",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
       "mealsByDate": {},
       "recurringMeals": {},
-      "notices": []
+      "notices": [],
+      "weeklyServices": [
+        {
+          "type": "breakfast",
+          "weekdays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "availability": "unknown",
+          "time": "Normally 08:15–09:30",
+          "menu": {
+            "kind": "link",
+            "label": "Check Christ's College's current dining information",
+            "url": "https://www.christs.cam.ac.uk/student-life/meals"
+          },
+          "notes": [
+            "Normal term-time hours found, but the exact applicable dates are not publicly confirmed."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Christ's College published dining hours",
+              "url": "https://www.christs.cam.ac.uk/student-life/meals",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "unknown",
+            "source": {
+              "label": "Christ's College published dining hours",
+              "url": "https://www.christs.cam.ac.uk/student-life/meals",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          }
+        },
+        {
+          "type": "lunch",
+          "weekdays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "availability": "unknown",
+          "time": "Normally 12:00–13:45",
+          "menu": {
+            "kind": "link",
+            "label": "Check Christ's College's current dining information",
+            "url": "https://www.christs.cam.ac.uk/student-life/meals"
+          },
+          "notes": [
+            "Normal term-time hours found, but the exact applicable dates are not publicly confirmed."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Christ's College published dining hours",
+              "url": "https://www.christs.cam.ac.uk/student-life/meals",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "unknown",
+            "source": {
+              "label": "Christ's College published dining hours",
+              "url": "https://www.christs.cam.ac.uk/student-life/meals",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          }
+        },
+        {
+          "type": "brunch",
+          "weekdays": [
+            "Saturday",
+            "Sunday"
+          ],
+          "availability": "unknown",
+          "time": "Normally 10:30–12:30",
+          "menu": {
+            "kind": "link",
+            "label": "Check Christ's College's current dining information",
+            "url": "https://www.christs.cam.ac.uk/student-life/meals"
+          },
+          "notes": [
+            "Normal term-time hours found, but the exact applicable dates are not publicly confirmed."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Christ's College published dining hours",
+              "url": "https://www.christs.cam.ac.uk/student-life/meals",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "unknown",
+            "source": {
+              "label": "Christ's College published dining hours",
+              "url": "https://www.christs.cam.ac.uk/student-life/meals",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          }
+        },
+        {
+          "type": "dinner",
+          "weekdays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+          ],
+          "availability": "unknown",
+          "time": "Normally 17:50–19:00",
+          "menu": {
+            "kind": "link",
+            "label": "Check Christ's College's current dining information",
+            "url": "https://www.christs.cam.ac.uk/student-life/meals"
+          },
+          "notes": [
+            "Normal term-time hours found, but the exact applicable dates are not publicly confirmed."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Christ's College published dining hours",
+              "url": "https://www.christs.cam.ac.uk/student-life/meals",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "unknown",
+            "source": {
+              "label": "Christ's College published dining hours",
+              "url": "https://www.christs.cam.ac.uk/student-life/meals",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          }
+        }
+      ],
+      "warning": "Normal term-time hours found, but the exact applicable dates are not publicly confirmed."
     },
     "clare": {
       "college": "clare",
-      "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "coverage": "schedule",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
       "mealsByDate": {},
       "recurringMeals": {},
-      "notices": []
+      "notices": [],
+      "weeklyServices": [
+        {
+          "type": "breakfast",
+          "weekdays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "availability": "unknown",
+          "time": "Normally 08:00–09:00",
+          "menu": {
+            "kind": "link",
+            "label": "Check Clare College's current dining information",
+            "url": "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/"
+          },
+          "notes": [
+            "Normal hours found, but the exact applicable dates are not publicly confirmed on this page."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Clare College published dining hours",
+              "url": "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "unknown",
+            "source": {
+              "label": "Clare College published dining hours",
+              "url": "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          }
+        },
+        {
+          "type": "lunch",
+          "weekdays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "availability": "unknown",
+          "time": "Normally 12:30–13:30",
+          "menu": {
+            "kind": "link",
+            "label": "Check Clare College's current dining information",
+            "url": "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/"
+          },
+          "notes": [
+            "Normal hours found, but the exact applicable dates are not publicly confirmed on this page."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Clare College published dining hours",
+              "url": "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "unknown",
+            "source": {
+              "label": "Clare College published dining hours",
+              "url": "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          }
+        },
+        {
+          "type": "dinner",
+          "weekdays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday"
+          ],
+          "availability": "unknown",
+          "time": "Normally 18:15–19:15",
+          "menu": {
+            "kind": "link",
+            "label": "Check Clare College's current dining information",
+            "url": "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/"
+          },
+          "notes": [
+            "Normal hours found, but the exact applicable dates are not publicly confirmed on this page."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Clare College published dining hours",
+              "url": "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "unknown",
+            "source": {
+              "label": "Clare College published dining hours",
+              "url": "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          }
+        },
+        {
+          "type": "brunch",
+          "weekdays": [
+            "Saturday"
+          ],
+          "availability": "unknown",
+          "time": "Normally 12:30–13:30",
+          "menu": {
+            "kind": "link",
+            "label": "Check Clare College's current dining information",
+            "url": "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/"
+          },
+          "notes": [
+            "Normal hours found, but the exact applicable dates are not publicly confirmed on this page."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Clare College published dining hours",
+              "url": "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "unknown",
+            "source": {
+              "label": "Clare College published dining hours",
+              "url": "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          }
+        }
+      ],
+      "warning": "Normal hours found, but the exact applicable dates are not publicly confirmed on this page."
     },
     "clare-hall": {
       "college": "clare-hall",
-      "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "coverage": "schedule",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
       "mealsByDate": {},
       "recurringMeals": {},
-      "notices": []
+      "notices": [],
+      "weeklyServices": [
+        {
+          "type": "lunch",
+          "weekdays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "availability": "unknown",
+          "time": "Normally 12:00–13:30",
+          "menu": {
+            "kind": "link",
+            "label": "Check Clare Hall's current dining information",
+            "url": "https://www.clarehall.cam.ac.uk/dining/"
+          },
+          "notes": [
+            "Normal weekday hours found, but event closures are published in a separate current menu and remain Unknown until that source is parsed."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Clare Hall published dining hours",
+              "url": "https://www.clarehall.cam.ac.uk/dining/",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "year-round",
+            "source": {
+              "label": "Clare Hall published dining hours",
+              "url": "https://www.clarehall.cam.ac.uk/dining/",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          }
+        },
+        {
+          "type": "dinner",
+          "weekdays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "availability": "unknown",
+          "time": "Normally 18:00–19:00",
+          "menu": {
+            "kind": "link",
+            "label": "Check Clare Hall's current dining information",
+            "url": "https://www.clarehall.cam.ac.uk/dining/"
+          },
+          "notes": [
+            "Normal weekday hours found, but event closures are published in a separate current menu and remain Unknown until that source is parsed."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Clare Hall published dining hours",
+              "url": "https://www.clarehall.cam.ac.uk/dining/",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "year-round",
+            "source": {
+              "label": "Clare Hall published dining hours",
+              "url": "https://www.clarehall.cam.ac.uk/dining/",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          }
+        }
+      ],
+      "warning": "Normal weekday hours found, but event closures are published in a separate current menu and remain Unknown until that source is parsed."
     },
     "corpus-christi": {
       "college": "corpus-christi",
-      "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "coverage": "schedule",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
       "mealsByDate": {},
       "recurringMeals": {},
-      "notices": []
+      "notices": [],
+      "weeklyServices": [
+        {
+          "type": "breakfast",
+          "weekdays": [
+            "Tuesday",
+            "Thursday"
+          ],
+          "availability": "available",
+          "time": "08:15–09:15",
+          "menu": {
+            "kind": "link",
+            "label": "Check Corpus Christi's current dining information",
+            "url": "https://www.jcr.corpus.cam.ac.uk/catering"
+          },
+          "notes": [
+            "Current official page structure confirms these recurring hours; verify exceptions before travelling."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Corpus Christi published dining hours",
+              "url": "https://www.jcr.corpus.cam.ac.uk/catering",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "full-term-only",
+            "source": {
+              "label": "Corpus Christi published dining hours",
+              "url": "https://www.jcr.corpus.cam.ac.uk/catering",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          }
+        },
+        {
+          "type": "brunch",
+          "weekdays": [
+            "Saturday",
+            "Sunday"
+          ],
+          "availability": "available",
+          "time": "11:30–13:00",
+          "menu": {
+            "kind": "link",
+            "label": "Check Corpus Christi's current dining information",
+            "url": "https://www.jcr.corpus.cam.ac.uk/catering"
+          },
+          "notes": [
+            "Current official page structure confirms these recurring hours; verify exceptions before travelling."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Corpus Christi published dining hours",
+              "url": "https://www.jcr.corpus.cam.ac.uk/catering",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "full-term-only",
+            "source": {
+              "label": "Corpus Christi published dining hours",
+              "url": "https://www.jcr.corpus.cam.ac.uk/catering",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          }
+        },
+        {
+          "type": "lunch",
+          "weekdays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "availability": "available",
+          "time": "12:00–13:30",
+          "menu": {
+            "kind": "link",
+            "label": "Check Corpus Christi's current dining information",
+            "url": "https://www.jcr.corpus.cam.ac.uk/catering"
+          },
+          "notes": [
+            "Current official page structure confirms these recurring hours; verify exceptions before travelling."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Corpus Christi published dining hours",
+              "url": "https://www.jcr.corpus.cam.ac.uk/catering",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "full-term-only",
+            "source": {
+              "label": "Corpus Christi published dining hours",
+              "url": "https://www.jcr.corpus.cam.ac.uk/catering",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          }
+        },
+        {
+          "type": "dinner",
+          "weekdays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Sunday"
+          ],
+          "availability": "available",
+          "time": "17:45–18:45",
+          "menu": {
+            "kind": "link",
+            "label": "Check Corpus Christi's current dining information",
+            "url": "https://www.jcr.corpus.cam.ac.uk/catering"
+          },
+          "notes": [
+            "Current official page structure confirms these recurring hours; verify exceptions before travelling."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Corpus Christi published dining hours",
+              "url": "https://www.jcr.corpus.cam.ac.uk/catering",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "full-term-only",
+            "source": {
+              "label": "Corpus Christi published dining hours",
+              "url": "https://www.jcr.corpus.cam.ac.uk/catering",
+              "evidence": "official-student-body",
+              "asOf": "2026-08-12"
+            }
+          }
+        }
+      ]
     },
     "emmanuel": {
       "college": "emmanuel",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -60,7 +622,7 @@
     "fitzwilliam": {
       "college": "fitzwilliam",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -71,7 +633,7 @@
     "girton": {
       "college": "girton",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -82,7 +644,7 @@
     "gonville-caius": {
       "college": "gonville-caius",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -93,7 +655,7 @@
     "homerton": {
       "college": "homerton",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -104,7 +666,7 @@
     "hughes-hall": {
       "college": "hughes-hall",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -115,7 +677,7 @@
     "jesus": {
       "college": "jesus",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -127,7 +689,7 @@
     "kings": {
       "college": "kings",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -138,7 +700,7 @@
     "lucy-cavendish": {
       "college": "lucy-cavendish",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -151,7 +713,7 @@
     "magdalene": {
       "college": "magdalene",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -162,7 +724,7 @@
     "murray-edwards": {
       "college": "murray-edwards",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -173,7 +735,7 @@
     "newnham": {
       "college": "newnham",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -184,7 +746,7 @@
     "pembroke": {
       "college": "pembroke",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -195,7 +757,7 @@
     "peterhouse": {
       "college": "peterhouse",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -208,7 +770,7 @@
     "queens": {
       "college": "queens",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -218,19 +780,138 @@
     },
     "robinson": {
       "college": "robinson",
-      "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "coverage": "schedule",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
       "mealsByDate": {},
       "recurringMeals": {},
-      "notices": []
+      "notices": [],
+      "weeklyServices": [
+        {
+          "type": "lunch",
+          "weekdays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "availability": "available",
+          "time": "12:20–13:40",
+          "menu": {
+            "kind": "link",
+            "label": "Check Robinson College's current dining information",
+            "url": "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours"
+          },
+          "notes": [
+            "Current official page structure confirms these recurring hours; verify exceptions before travelling."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Robinson College published dining hours",
+              "url": "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "full-term-only",
+            "source": {
+              "label": "Robinson College published dining hours",
+              "url": "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          }
+        },
+        {
+          "type": "dinner",
+          "weekdays": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+          ],
+          "availability": "available",
+          "time": "18:00–19:15",
+          "menu": {
+            "kind": "link",
+            "label": "Check Robinson College's current dining information",
+            "url": "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours"
+          },
+          "notes": [
+            "Current official page structure confirms these recurring hours; verify exceptions before travelling."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Robinson College published dining hours",
+              "url": "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "full-term-only",
+            "source": {
+              "label": "Robinson College published dining hours",
+              "url": "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          }
+        },
+        {
+          "type": "brunch",
+          "weekdays": [
+            "Saturday",
+            "Sunday"
+          ],
+          "availability": "available",
+          "time": "12:00–13:30",
+          "menu": {
+            "kind": "link",
+            "label": "Check Robinson College's current dining information",
+            "url": "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours"
+          },
+          "notes": [
+            "Current official page structure confirms these recurring hours; verify exceptions before travelling."
+          ],
+          "restrictions": [
+            "Ask catering staff about current allergens and dietary requirements."
+          ],
+          "sourceLinks": [
+            {
+              "label": "Robinson College published dining hours",
+              "url": "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          ],
+          "serviceWindow": {
+            "kind": "full-term-only",
+            "source": {
+              "label": "Robinson College published dining hours",
+              "url": "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours",
+              "evidence": "official-college",
+              "asOf": "2026-08-12"
+            }
+          }
+        }
+      ]
     },
     "selwyn": {
       "college": "selwyn",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -241,7 +922,7 @@
     "sidney-sussex": {
       "college": "sidney-sussex",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -254,7 +935,7 @@
     "st-catharines": {
       "college": "st-catharines",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -267,7 +948,7 @@
     "st-johns": {
       "college": "st-johns",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -278,7 +959,7 @@
     "trinity": {
       "college": "trinity",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -289,7 +970,7 @@
     "trinity-hall": {
       "college": "trinity-hall",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,
@@ -300,7 +981,7 @@
     "wolfson": {
       "college": "wolfson",
       "coverage": "link-only",
-      "collectedAt": "2026-08-12T16:25:03.443Z",
+      "collectedAt": "2026-08-12T17:27:17.015Z",
       "sourceModifiedAt": null,
       "validFrom": null,
       "validThrough": null,

@@ -63,6 +63,23 @@ describe("table row derivation", () => {
     expect(rows[0]).toMatchObject({ isServing: true, hasPublishedMenu: true, accessClass: "unhosted-cambridge" });
   });
 
+  it("applies service windows before table summaries and filters", () => {
+    const state = dashboard();
+    const churchill = state.colleges.churchill;
+    if (churchill.status !== "ready") throw new Error("expected ready state");
+    churchill.day.meals.lunch.serviceWindow = {
+      kind: "full-term-only",
+      source: collegeById("christs").sources[0]!
+    };
+
+    expect(tableRows(state, DEFAULT_TABLE_OPTIONS).find(({ id }) => id === "churchill")).toMatchObject({
+      services: "Not confirmed",
+      isServing: false,
+      next: "No later published service"
+    });
+    expect(tableRows(state, { ...DEFAULT_TABLE_OPTIONS, serving: true }).some(({ id }) => id === "churchill")).toBe(false);
+  });
+
   it("combines normalized search and access-unknown filtering", () => {
     const rows = tableRows(dashboard(), { ...DEFAULT_TABLE_OPTIONS, query: "cafeteria", accessUnknown: true });
     expect(rows.map(({ id }) => id)).toEqual(expect.arrayContaining(["jesus", "wolfson"]));

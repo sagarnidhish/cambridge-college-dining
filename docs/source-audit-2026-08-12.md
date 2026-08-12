@@ -2,7 +2,7 @@
 
 ## Release result
 
-The directory contains exactly 31 canonical Cambridge colleges in alphabetical order. Four direct adapters passed current structural and CORS smoke checks on 12 August 2026. A full bounded scheduled-source collection resolved all 27 primary links after stale URLs were replaced; a later five-link smoke sample saw an intermittent HTTP 403 from Wolfson, which is treated as a review warning and not as evidence that dining is closed.
+The directory contains exactly 31 canonical Cambridge colleges in alphabetical order. Four direct adapters passed current structural and CORS smoke checks on 12 August 2026. A full bounded scheduled-source collection resolved all 27 primary links. Five guarded HTML parsers recognized the published recurring-hours structures for Christ's, Clare, Clare Hall, Corpus Christi, and Robinson. Christ's, Clare, and Clare Hall remain Unknown because their exact date applicability or current event exceptions are not structurally confirmed; Corpus and Robinson are promoted only within explicitly published Full Term rules. A later five-link smoke sample saw an intermittent HTTP 403 from Wolfson, which is treated as a review warning and not as evidence that dining is closed.
 
 Evidence and claims remain intentionally separate. “Official University” is used when no suitable current college dining page was found. “Official student body” is visibly labelled. “Supplementary” is never presented as official. A successful link check establishes only that the source resolved; it does not establish current meal availability.
 
@@ -10,11 +10,11 @@ Evidence and claims remain intentionally separate. “Official University” is 
 
 | College | Primary public source | Evidence | Retrieval | Last check | Limitation |
 |---|---|---|---|---|---|
-| Christ's College | [Meals](https://www.christs.cam.ac.uk/student-life/meals) | Official college | Scheduled | Resolved | Link validated; no structured dated menu collected. |
+| Christ's College | [Meals](https://www.christs.cam.ac.uk/student-life/meals) | Official college | Scheduled | Guarded hours parser passed | Normal term-time hours are shown as Unknown because exact applicable dates are not stated. |
 | Churchill College | [Lunch and dinner menu](https://www.chu.cam.ac.uk/about/campus/dining-at-college/lunch-and-dinner-menu/) | Official college | Direct | Adapter/CORS passed | Page structure can change; only confidently dated sections are promoted. |
-| Clare College | [Dining and catering](https://www.clare.cam.ac.uk/admissions-outreach/undergraduate-study/life-clare/dining-and-catering) | Official college | Scheduled | Resolved | Public overview, not a dated menu feed. |
-| Clare Hall | [Dining](https://www.clarehall.cam.ac.uk/dining/) | Official college | Scheduled | Resolved | Access is host/guest-dependent; verify current rules. |
-| Corpus Christi | [Food and dining](https://www.corpus.cam.ac.uk/undergraduate-study/living-corpus/food-and-dining) | Official college | Scheduled | Resolved | Additional student-body guidance is supplementary to the college page. |
+| Clare College | [Buttery hours](https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/) | Official college | Scheduled | Guarded hours parser passed | Recurring hours are shown as Unknown because the page does not establish exact applicable dates. |
+| Clare Hall | [Dining](https://www.clarehall.cam.ac.uk/dining/) | Official college | Scheduled | Guarded hours parser passed | Normal weekday hours remain Unknown because event closures are published separately. |
+| Corpus Christi | [JCR catering guide](https://www.jcr.corpus.cam.ac.uk/catering) | Official student body | Scheduled | Guarded hours parser passed | Recurring services are applied only in Full Term; access requires a Corpus guest and surcharge. |
 | Darwin College | [Weekly menu](https://www.darwin.cam.ac.uk/dine/weekly-menu/) | Official college | Direct | Adapter/CORS passed | Structured endpoint exposes publication metadata, not dish fields. |
 | Downing College | [Catering](https://www.dow.cam.ac.uk/current-students/catering) | Official college | Direct | Adapter/CORS passed | Kafoodle does not distinguish lunch items from dinner items. |
 | Emmanuel College | [Living at Emmanuel — catering](https://www.emma.cam.ac.uk/explore/life) | Official college | Scheduled | Resolved | General current catering description; no public dated menu was collected. |
@@ -32,7 +32,7 @@ Evidence and claims remain intentionally separate. “Official University” is 
 | Pembroke College | [Servery menu](https://www.pem.cam.ac.uk/college/catering/information-students/servery-menu) | Official college | Scheduled | Resolved | Page changes and special closures require verification. |
 | Peterhouse | [University college profile](https://www.undergraduate.study.cam.ac.uk/colleges/peterhouse) | Official University | Scheduled | Resolved | Former handbook URL returned 404; Petmenu remains labelled supplementary. |
 | Queens' College | [Weekly menu](https://www.queens.cam.ac.uk/life-at-queens/catering/dining-hall/weekly-menu/) | Official college | Scheduled | Resolved | Link-only; no menu transcription or date inference. |
-| Robinson College | [Garden Restaurant menu](https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu) | Official college | Scheduled | Resolved | Dated page still requires a dedicated guarded parser before promotion. |
+| Robinson College | [Garden Restaurant opening hours](https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours) | Official college | Scheduled | Guarded hours parser passed | Full Term service hours are parsed; non-members require a Robinson host at the till. |
 | Selwyn College | [Hall menu](https://www.sel.cam.ac.uk/current-members/hall-menu) | Official college | Scheduled | Resolved and smoke-sampled | Replaced an obsolete beta host; menus remain link-only in the snapshot. |
 | Sidney Sussex College | [Students' Union Hall guide](https://sscsu.org.uk/hall) | Official student body | Scheduled | Resolved | Maintained separately from the college; verify changes at source. |
 | St Catharine's College | [MCR Hall times](https://mcr.caths.cam.ac.uk/current-students/hall-times) | Official student body | Scheduled | Resolved | Student-body timetable may not cover special closures. |
@@ -45,13 +45,13 @@ Evidence and claims remain intentionally separate. “Official University” is 
 ## Verification record
 
 - Clean-install gate: `npm ci` installed 109 packages successfully, followed by a fresh full collection of all 27 scheduled primaries.
-- Unit/integration gate: 23 files and 107 tests passed against the collected release snapshot, including native-dialog and collector-recovery regressions.
+- Unit/integration gate: 30 files and 164 tests passed against the collected release snapshot, including parser-drift, term-applicability, native-dialog, and collector-recovery regressions.
 - Production build: Vite build passed; built snapshot validated with exactly 27 scheduled records.
 - Direct live smoke: Churchill, Darwin, Downing, and St Edmund's passed payload-structure and browser-CORS checks.
 - Scheduled collection: bounded full run resolved 27 of 27 corrected primary links and wrote a schema-valid temporary snapshot.
-- Real-browser audit: headless Chrome confirmed 31 initial rows, the exact desktop column contract, shareable Churchill deep link, inert background, mandatory detail fields, map title, initial close-button focus, Escape close, focus restoration, search, previous-date control, 31 source groups, and the active Sources navigation state.
+- Real-browser audit: Chrome 151 confirmed 31 initial rows, a date-specific Churchill recommendation on 12 August, only Corpus and Robinson in the host-needed tier on 7 October, dynamic map titles, shareable Churchill deep link, inert background, mandatory detail fields, initial close-button focus, and exact map-opener focus restoration.
 - Accessibility coverage: semantic table with scoped headers; named sort and row buttons; labelled date/search/filter controls; modal title; Escape; tested Tab and Shift+Tab containment; inert background; focus restoration; explicit text for loading, errors, Closed, and Unknown; HTTPS-only evidence links; image alt text; iframe title; visible focus rings; minimum 44px controls; reduced-motion rule. Chrome also confirmed the reduced-motion media preference is recognized.
-- Responsive coverage: at a real 320px Chrome viewport, College, Services today, and Access remained visible; optional columns hid; horizontal overflow remained contained; and the detail dialog occupied the full viewport width.
+- Responsive coverage: real 1440px, 720px, and 320px Chrome viewports retained all 31 rows; optional columns hid at 720px and below; and the 320px table overflow remained contained in its dedicated horizontal scroller.
 
 ## Archive and release checks
 

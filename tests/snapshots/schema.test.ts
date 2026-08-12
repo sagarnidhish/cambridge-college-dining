@@ -46,4 +46,42 @@ describe("scheduled snapshot schema", () => {
     invalid.colleges.wolfson!.coverage = "menu";
     expect(() => parseScheduledSnapshot(invalid)).toThrow(/menu coverage/);
   });
+
+  it("rejects malformed or unsafe snapshot service windows", () => {
+    const invalid = scheduledSnapshotFixture();
+    invalid.colleges.newnham!.recurringMeals = {
+      lunch: {
+        availability: "available",
+        time: "12:30–13:30",
+        menu: { kind: "message", message: "Published schedule" },
+        notes: [],
+        sourceLinks: [],
+        serviceWindow: {
+          kind: "date-range",
+          validFrom: "2026-08-20",
+          validThrough: "2026-08-10",
+          source: { label: "Unsafe", url: "http://example.test/times" }
+        }
+      }
+    };
+    expect(() => parseScheduledSnapshot(invalid)).toThrow(/service window/i);
+
+    const unknownKind = structuredClone(invalid) as any;
+    unknownKind.colleges.newnham.recurringMeals.lunch.serviceWindow = { kind: "sometimes" };
+    expect(() => parseScheduledSnapshot(unknownKind)).toThrow(/service window/i);
+  });
+
+  it("rejects malformed weekly-service weekdays", () => {
+    const invalid = scheduledSnapshotFixture();
+    invalid.colleges.robinson!.weeklyServices = [{
+      type: "lunch",
+      weekdays: ["Monday", "Monday"],
+      availability: "available",
+      time: "12:20–13:40",
+      menu: { kind: "link", label: "Hours", url: "https://www.robinson.cam.ac.uk/hours" },
+      notes: [],
+      sourceLinks: []
+    }];
+    expect(() => parseScheduledSnapshot(invalid)).toThrow(/service window/i);
+  });
 });

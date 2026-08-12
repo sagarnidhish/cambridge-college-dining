@@ -1,5 +1,5 @@
 import { COLLEGES } from "../../src/domain/catalog";
-import type { CollegeId, IsoDate, MealRecord, MealType, SnapshotCoverage } from "../../src/domain/types";
+import type { CollegeId, IsoDate, MealRecord, MealType, SnapshotCoverage, Weekday } from "../../src/domain/types";
 
 export interface SnapshotRecordFixture {
   college: CollegeId;
@@ -10,6 +10,7 @@ export interface SnapshotRecordFixture {
   validThrough: IsoDate | null;
   mealsByDate: Partial<Record<IsoDate, Partial<Record<MealType, Omit<MealRecord, "type">>>>>;
   recurringMeals: Partial<Record<MealType, Omit<MealRecord, "type">>>;
+  weeklyServices: Array<Omit<MealRecord, "type"> & { type: MealType; weekdays: Weekday[] }>;
   notices: string[];
   warning?: string;
 }
@@ -29,6 +30,7 @@ export function scheduledSnapshotFixture(): {
       validThrough: null,
       mealsByDate: {},
       recurringMeals: {},
+      weeklyServices: [],
       notices: []
     } satisfies SnapshotRecordFixture])
   );

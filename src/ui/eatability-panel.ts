@@ -28,13 +28,14 @@ function appendTier(
   heading: string,
   results: EatabilityResult[],
   selected: CollegeId | null,
+  loading: boolean,
   actions: EatabilityPanelActions
 ): void {
   const section = element("section");
   section.className = "eatability-tier";
   section.append(element("h3", `${heading} (${results.length})`));
   if (results.length === 0) {
-    section.append(element("p", "No source-confirmed options in this tier."));
+    section.append(element("p", loading ? "Checking current evidence…" : "No source-confirmed options in this tier."));
     parent.append(section);
     return;
   }
@@ -60,6 +61,7 @@ function appendTier(
     details.type = "button";
     details.className = "eatability-details";
     details.dataset.mapDetails = result.college;
+    details.dataset.focusKey = `map-details-${result.college}`;
     details.addEventListener("click", () => actions.openCollege(result.college));
     item.append(focus, details);
     list.append(item);
@@ -84,8 +86,11 @@ export function appendEatabilityPanel(
   const results = eatabilityResults(dashboard);
   const confirmed = results.filter(({ tier }) => tier === "confirmed");
   const hosted = results.filter(({ tier }) => tier === "host-required");
+  const loading = Object.values(dashboard.colleges).some(({ status }) => status === "loading");
   const selected = results.find(({ college }) => college === focusedCollege) ?? confirmed[0] ?? hosted[0] ?? null;
-  const status = element("p", results.length === 0
+  const status = element("p", loading
+    ? "Loading current public dining evidence…"
+    : results.length === 0
     ? "No option confirmed from current public evidence"
     : `${confirmed.length} confirmed without a host; ${hosted.length} need a host or booking.`);
   status.className = "eatability-count";
@@ -97,8 +102,8 @@ export function appendEatabilityPanel(
   layout.className = "eatability-layout";
   const tiers = element("div");
   tiers.className = "eatability-lists";
-  appendTier(tiers, "Confirmed without a host", confirmed, selected?.college ?? null, actions);
-  appendTier(tiers, "Host or booking needed", hosted, selected?.college ?? null, actions);
+  appendTier(tiers, "Confirmed without a host", confirmed, selected?.college ?? null, loading, actions);
+  appendTier(tiers, "Host or booking needed", hosted, selected?.college ?? null, loading, actions);
   layout.append(tiers);
 
   const mapArea = element("div");

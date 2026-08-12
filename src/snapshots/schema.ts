@@ -1,9 +1,10 @@
 import { COLLEGES } from "../domain/catalog";
-import { COLLEGE_IDS, MEAL_TYPES, type CollegeId, type IsoDate, type MealRecord, type MealType, type SnapshotCoverage } from "../domain/types";
+import { COLLEGE_IDS, MEAL_TYPES, WEEKDAYS, type CollegeId, type IsoDate, type MealRecord, type MealType, type SnapshotCoverage, type Weekday } from "../domain/types";
 import { isIsoDate } from "../domain/dates";
 
 export type ScheduledCollegeId = Exclude<CollegeId, "churchill" | "darwin" | "downing" | "st-edmunds">;
 export type SnapshotMeal = Omit<MealRecord, "type">;
+export type SnapshotWeeklyService = SnapshotMeal & { type: MealType; weekdays: Weekday[] };
 
 export interface ScheduledCollegeRecord {
   college: ScheduledCollegeId;
@@ -14,6 +15,7 @@ export interface ScheduledCollegeRecord {
   validThrough: IsoDate | null;
   mealsByDate: Partial<Record<IsoDate, Partial<Record<MealType, SnapshotMeal>>>>;
   recurringMeals: Partial<Record<MealType, SnapshotMeal>>;
+  weeklyServices: SnapshotWeeklyService[];
   notices: string[];
   warning?: string;
 }
@@ -57,6 +59,22 @@ function sourceLinks(value: unknown): boolean {
   );
 }
 
+function sourceLink(value: unknown): boolean {
+  return record(value) && typeof value.label === "string" && httpsUrl(value.url)
+    && (value.evidence === undefined || ["official-college", "official-university", "official-student-body", "supplementary"].includes(String(value.evidence)))
+    && (value.asOf === undefined || typeof value.asOf === "string");
+}
+
+function serviceWindow(value: unknown): boolean {
+  if (value === undefined) return true;
+  if (!record(value) || typeof value.kind !== "string") return false;
+  if (value.kind === "unknown") return value.source === undefined || sourceLink(value.source);
+  if (!sourceLink(value.source)) return false;
+  if (value.kind === "year-round" || value.kind === "full-term-only") return true;
+  if (value.kind === "date-specific") return isIsoDate(value.date);
+  return value.kind === "date-range" && isIsoDate(value.validFrom) && isIsoDate(value.validThrough) && value.validFrom <= value.validThrough;
+}
+
 function menuEntry(value: unknown): boolean {
   if (!record(value) || typeof value.kind !== "string") return false;
   if (value.kind === "items") return stringArray(value.items) && value.items.length > 0;
@@ -76,7 +94,8 @@ function snapshotMeal(value: unknown): value is SnapshotMeal {
     && menu(value.menu)
     && stringArray(value.notes)
     && (value.restrictions === undefined || stringArray(value.restrictions))
-    && sourceLinks(value.sourceLinks);
+    && sourceLinks(value.sourceLinks)
+    && serviceWindow(value.serviceWindow);
 }
 
 function mealMap(value: unknown): boolean {
@@ -89,6 +108,16 @@ function datedMealMap(value: unknown): boolean {
   return record(value) && Object.entries(value).every(([date, meals]) => isIsoDate(date) && mealMap(meals));
 }
 
+function weeklyServices(value: unknown): boolean {
+  return Array.isArray(value) && value.every((service) => record(service)
+    && MEAL_TYPES.includes(service.type as MealType)
+    && Array.isArray(service.weekdays)
+    && service.weekdays.length > 0
+    && new Set(service.weekdays).size === service.weekdays.length
+    && service.weekdays.every((weekday) => WEEKDAYS.includes(weekday as Weekday))
+    && snapshotMeal(service));
+}
+
 function hasPublishedMenu(meal: SnapshotMeal): boolean {
   const entries = Array.isArray(meal.menu) ? meal.menu : [meal.menu];
   return entries.some((entry) => entry.kind !== "message");
@@ -96,10 +125,11 @@ function hasPublishedMenu(meal: SnapshotMeal): boolean {
 
 function recordHasPublishedMenu(value: ScheduledCollegeRecord): boolean {
   const recurring = Object.values(value.recurringMeals).filter((meal): meal is SnapshotMeal => meal !== undefined);
+  const weekly = value.weeklyServices;
   const dated = Object.values(value.mealsByDate).flatMap((meals) =>
     meals === undefined ? [] : Object.values(meals).filter((meal): meal is SnapshotMeal => meal !== undefined)
   );
-  return [...recurring, ...dated].some(hasPublishedMenu);
+  return [...recurring, ...weekly, ...dated].some(hasPublishedMenu);
 }
 
 function parseCollegeRecord(value: unknown, id: ScheduledCollegeId): ScheduledCollegeRecord {
@@ -112,14 +142,15 @@ function parseCollegeRecord(value: unknown, id: ScheduledCollegeId): ScheduledCo
     || (value.validThrough !== null && !isIsoDate(value.validThrough))
     || !datedMealMap(value.mealsByDate)
     || !mealMap(value.recurringMeals)
+    || !weeklyServices(value.weeklyServices ?? [])
     || !stringArray(value.notices)
     || (value.warning !== undefined && typeof value.warning !== "string")) {
-    throw new Error(`Invalid scheduled snapshot record for ${id}; menu and source URLs must use HTTPS`);
+    throw new Error(`Invalid scheduled snapshot record for ${id}; menu, service window, and source URLs must use HTTPS`);
   }
   if (value.validFrom !== null && value.validThrough !== null && value.validFrom > value.validThrough) {
     throw new Error(`Invalid validity range for ${id}`);
   }
-  const parsed = value as unknown as ScheduledCollegeRecord;
+  const parsed = { ...value, weeklyServices: value.weeklyServices ?? [] } as unknown as ScheduledCollegeRecord;
   if (parsed.coverage === "menu" && !recordHasPublishedMenu(parsed)) {
     throw new Error(`Invalid menu coverage for ${id}`);
   }

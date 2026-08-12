@@ -1,4 +1,5 @@
 import { formatCambridgeTimestamp, weekdayForIso } from "../domain/dates";
+import { effectiveMealForDate } from "../domain/service-window";
 import { MEAL_TYPES, type CollegeViewState, type DiningDay, type EvidenceKind, type IsoDate, type MealRecord, type MealType, type MenuContent, type SourceLink } from "../domain/types";
 
 const MEAL_LABEL: Record<MealType, string> = { breakfast: "Breakfast", brunch: "Brunch", lunch: "Lunch", dinner: "Dinner" };
@@ -134,6 +135,17 @@ function listSummary(types: MealType[]): string {
   return types.map((type, index) => index === 0 ? MEAL_LABEL[type] : MEAL_LABEL[type].toLocaleLowerCase("en-GB")).join(", ");
 }
 
+function closedSummary(meals: DiningDay["meals"], types: MealType[]): string {
+  const serviceWindowNotes = new Set(["Published for Full Term only", "Outside the published service dates"]);
+  const ordinary = types.filter((type) => !meals[type].notes.some((note) => serviceWindowNotes.has(note)));
+  const parts = ordinary.length === 0 ? [] : [listSummary(ordinary)];
+  for (const type of types.filter((mealType) => !ordinary.includes(mealType))) {
+    const reason = meals[type].notes.find((note) => serviceWindowNotes.has(note))!;
+    parts.push(`${MEAL_LABEL[type]} — ${reason.charAt(0).toLocaleLowerCase("en-GB")}${reason.slice(1)}`);
+  }
+  return `Closed today: ${parts.join("; ")}.`;
+}
+
 function accessLabel(classification: NonNullable<DiningDay["access"]>["classification"]): string {
   if (classification === "unhosted-cambridge") return "Confirmed without a host";
   if (classification === "guest-required") return "Host or guest arrangement";
@@ -166,12 +178,13 @@ function appendReady(parent: HTMLElement, day: DiningDay): void {
   field(overview, "Freshness", day.freshness === "live" ? "Live" : day.freshness === "scheduled" ? "Scheduled snapshot" : "Cached fallback");
   parent.append(overview);
 
-  const available = MEAL_TYPES.filter((type) => day.meals[type].availability === "available");
-  const closed = MEAL_TYPES.filter((type) => day.meals[type].availability === "closed");
-  const unknown = MEAL_TYPES.filter((type) => day.meals[type].availability === "unknown");
-  if (closed.length > 0) parent.append(element("p", `Closed today: ${listSummary(closed)}`));
+  const meals = Object.fromEntries(MEAL_TYPES.map((type) => [type, effectiveMealForDate(day.meals[type], day.date)])) as DiningDay["meals"];
+  const available = MEAL_TYPES.filter((type) => meals[type].availability === "available");
+  const closed = MEAL_TYPES.filter((type) => meals[type].availability === "closed");
+  const unknown = MEAL_TYPES.filter((type) => meals[type].availability === "unknown");
+  if (closed.length > 0) parent.append(element("p", closedSummary(meals, closed)));
   if (unknown.length > 0) parent.append(element("p", `Not confirmed: ${listSummary(unknown)}`));
-  for (const type of available) appendMeal(parent, day.meals[type]);
+  for (const type of available) appendMeal(parent, meals[type]);
 
   const notices = element("section");
   notices.append(element("h3", "Notes and restrictions"));

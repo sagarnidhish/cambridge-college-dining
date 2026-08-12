@@ -4,6 +4,7 @@ const IDS = new Set(SCHEDULED_COLLEGE_IDS);
 const MEALS = new Set(["breakfast", "brunch", "lunch", "dinner"]);
 const COVERAGE = new Set(["menu", "schedule", "link-only"]);
 const AVAILABILITY = new Set(["available", "closed", "unknown"]);
+const WEEKDAYS = new Set(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]);
 
 function object(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -35,6 +36,24 @@ function sourceLinks(value) {
     && (source.asOf === undefined || typeof source.asOf === "string"));
 }
 
+function sourceLink(value) {
+  return object(value)
+    && typeof value.label === "string"
+    && https(value.url)
+    && (value.evidence === undefined || ["official-college", "official-university", "official-student-body", "supplementary"].includes(value.evidence))
+    && (value.asOf === undefined || typeof value.asOf === "string");
+}
+
+function serviceWindow(value) {
+  if (value === undefined) return true;
+  if (!object(value) || typeof value.kind !== "string") return false;
+  if (value.kind === "unknown") return value.source === undefined || sourceLink(value.source);
+  if (!sourceLink(value.source)) return false;
+  if (value.kind === "year-round" || value.kind === "full-term-only") return true;
+  if (value.kind === "date-specific") return isoDate(value.date);
+  return value.kind === "date-range" && isoDate(value.validFrom) && isoDate(value.validThrough) && value.validFrom <= value.validThrough;
+}
+
 function menuEntry(value) {
   if (!object(value)) return false;
   if (value.kind === "items") return Array.isArray(value.items) && value.items.length > 0 && value.items.every((item) => typeof item === "string");
@@ -54,7 +73,8 @@ function meal(value) {
     && menu(value.menu)
     && Array.isArray(value.notes) && value.notes.every((note) => typeof note === "string")
     && (value.restrictions === undefined || Array.isArray(value.restrictions) && value.restrictions.every((item) => typeof item === "string"))
-    && sourceLinks(value.sourceLinks);
+    && sourceLinks(value.sourceLinks)
+    && serviceWindow(value.serviceWindow);
 }
 
 function mealMap(value) {
@@ -65,9 +85,20 @@ function datedMealMap(value) {
   return object(value) && Object.entries(value).every(([date, entries]) => isoDate(date) && mealMap(entries));
 }
 
+function weeklyServices(value) {
+  return Array.isArray(value) && value.every((service) => object(service)
+    && MEALS.has(service.type)
+    && Array.isArray(service.weekdays)
+    && service.weekdays.length > 0
+    && new Set(service.weekdays).size === service.weekdays.length
+    && service.weekdays.every((weekday) => WEEKDAYS.has(weekday))
+    && meal(service));
+}
+
 function hasPublishedMenu(record) {
   const entries = [
     ...Object.values(record.recurringMeals),
+    ...(record.weeklyServices ?? []),
     ...Object.values(record.mealsByDate).flatMap((day) => Object.values(day))
   ];
   return entries.some((entry) => (Array.isArray(entry.menu) ? entry.menu : [entry.menu]).some((item) => item.kind !== "message"));
@@ -80,7 +111,7 @@ export function validateCollegeAttempt(value) {
   if (value.sourceModifiedAt !== null && !timestamp(value.sourceModifiedAt)) throw new Error(`Invalid source timestamp for ${value.college}`);
   if ((value.validFrom !== null && !isoDate(value.validFrom)) || (value.validThrough !== null && !isoDate(value.validThrough))) throw new Error(`Invalid validity date for ${value.college}`);
   if (value.validFrom !== null && value.validThrough !== null && value.validFrom > value.validThrough) throw new Error(`Invalid validity range for ${value.college}`);
-  if (!datedMealMap(value.mealsByDate) || !mealMap(value.recurringMeals)) throw new Error(`Invalid meal data or non-HTTPS evidence for ${value.college}; source URLs must use HTTPS`);
+  if (!datedMealMap(value.mealsByDate) || !mealMap(value.recurringMeals) || !weeklyServices(value.weeklyServices ?? [])) throw new Error(`Invalid meal data, weekday schedule, service window, or non-HTTPS evidence for ${value.college}; source URLs must use HTTPS`);
   if (!Array.isArray(value.notices) || !value.notices.every((notice) => typeof notice === "string")) throw new Error(`Invalid notices for ${value.college}`);
   if (value.warning !== undefined && typeof value.warning !== "string") throw new Error(`Invalid warning for ${value.college}`);
   if (value.coverage === "menu" && !hasPublishedMenu(value)) throw new Error(`Invalid menu coverage for ${value.college}: no published menu evidence`);
