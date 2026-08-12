@@ -1,6 +1,6 @@
 # Cambridge college dining
 
-A source-linked dining directory for all 31 University of Cambridge colleges. The public landing page is an alphabetical table with date controls, search, evidence filters, sorting, and a shareable detail dialog for each college.
+A compact, source-linked dining directory for all 31 University of Cambridge colleges. The public landing page starts with date controls, a conservative "Where can I eat?" list and shared map, then the complete alphabetical table with search, evidence filters, sorting, and a shareable detail dialog for each college.
 
 - Current site: <https://sagarnidhish.github.io/cambridge-college-dining/>
 - Preserved v1 archive: <https://sagarnidhish.github.io/cambridge-college-dining_old/>
@@ -10,7 +10,7 @@ The archive is a separate GitHub Pages copy and is not modified by this reposito
 
 ## What the directory shows
 
-For the selected Cambridge date, every college row reports the best public evidence currently available for services, next meal/time, access, indicative price, and freshness. Opening a row shows the weekday and date, meal times, menu material, notices, restrictions, access and guest guidance, payment information, term context, source timestamps, a map, and direct verification links.
+For the selected Cambridge date, every college row reports the best public evidence currently available for services, next meal/time, access, indicative price, and freshness. Opening a row shows the weekday and date, meal times, menu material, notices, restrictions, access and guest guidance, payment information, term context, source timestamps, and direct verification links. College names open the dining area (or nearest suitable college dining query) in Google Maps.
 
 Meal availability is deliberately conservative:
 
@@ -19,6 +19,8 @@ Meal availability is deliberately conservative:
 - **Unknown** means the public evidence is insufficient. Unknown never silently becomes closed.
 
 The site cannot guarantee admission, price, allergen safety, or last-minute service changes. Users should verify the linked source before travelling and ask catering staff about dietary requirements.
+
+The map panel is stricter than the full directory. It requires a date-applicable Available meal plus sourced everyday-access evidence. "Confirmed without a host" and "Host or booking needed" are separate lists; colleges whose access remains Unknown are not recommended even when they publish a menu.
 
 ## Source architecture and freshness
 
@@ -40,6 +42,12 @@ Freshness labels mean:
 The browser cache is local to one device. It is versioned, schema-validated, and exact-date only; it is not a shared database or a complete dining history.
 
 Full Term labels are derived from the University's published Full Term calendar. They are context only and do not establish that a servery is open.
+
+The footer uses a best-effort third-party page-load badge. It may include repeat visits or be blocked by privacy tools and has no effect on the application.
+
+## Future work
+
+The deliberately deferred café/bar directory, moderated discussion layer, and Cambridge-login guest-request workflow are recorded in [docs/roadmap.md](docs/roadmap.md). They require separate access, privacy, moderation, and abuse-prevention design before implementation.
 
 ## Run locally
 

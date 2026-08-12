@@ -39,6 +39,13 @@ export function appendMethodology(parent: HTMLElement, metadata: MethodologyMeta
   article.append(element("h1", "Sources and Methodology"));
   article.append(element("p", "This directory separates confirmed dining information from unknowns. It does not infer that a meal is open, accessible, or available merely because a page exists."));
 
+  const eligibility = element("section");
+  eligibility.append(element("h2", "Eligibility list and map"));
+  eligibility.append(element("p", "A college appears in Where can I eat? only when an Available meal is supported for the selected date, the dining location is known, and an HTTPS source documents either an everyday guest route or access without a host."));
+  eligibility.append(element("p", "Confirmed without a host means the published everyday rule does not require a member host. Host or booking needed is a separate tier and must not be read as walk-in access. Unknown-access colleges stay in the 31-college directory but are excluded from both lists."));
+  eligibility.append(element("p", "The shared Google map follows the selected eligible dining area. College-name map links use the exact published dining area where possible and otherwise the nearest college dining venue query."));
+  article.append(eligibility);
+
   const freshness = element("section");
   freshness.append(element("h2", "Freshness and date handling"));
   freshness.append(element("p", "Live means the official source was requested for this page load. Scheduled snapshot means a checked-in daily collection is being shown. Cached fallback means an earlier exact-date result is shown after a current request failed."));
@@ -57,6 +64,11 @@ export function appendMethodology(parent: HTMLElement, metadata: MethodologyMeta
   ]) cautionList.append(element("li", item));
   cautions.append(cautionList);
   article.append(cautions);
+
+  const counter = element("section");
+  counter.append(element("h2", "Page counter"));
+  counter.append(element("p", "The footer page-load badge is an approximate third-party counter from hits.sh. It may count repeat loads, can be blocked by privacy tools, and is not used to decide dining availability."));
+  article.append(counter);
 
   const definitions = element("section");
   definitions.append(element("h2", "Evidence labels"));

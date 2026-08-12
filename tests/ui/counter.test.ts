@@ -8,6 +8,7 @@ describe("page-load counter", () => {
     const image = root.querySelector<HTMLImageElement>(".page-counter img")!;
     expect(image.alt).toContain("Page loads");
     expect(new URL(image.src).protocol).toBe("https:");
+    expect(image.src).toContain("cambridge-college-dining.svg");
   });
 
   it("leaves the application usable when the counter image fails", () => {

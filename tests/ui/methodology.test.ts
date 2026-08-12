@@ -12,6 +12,9 @@ describe("Sources and Methodology", () => {
     }
     expect(root.textContent).toContain("12 Aug 2026, 10:00");
     expect(root.textContent).toContain("Access and prices can change");
+    expect(root.textContent).toContain("Confirmed without a host");
+    expect(root.textContent).toContain("Available meal");
+    expect(root.textContent).toContain("page-load badge");
   });
 
   it("renders only safe HTTPS evidence links", () => {
