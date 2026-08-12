@@ -38,7 +38,7 @@
 - Consumes: existing `IsoDate`, `MEAL_TYPES`, and `weekdayForIso(date)`.
 - Produces: `COLLEGE_IDS`, `CollegeId`, `COLLEGES`, `collegeById(id)`, the enriched domain types, `unknownDiningDay(profile, date, fetchedAt, freshness, warning?)`, and `termStatusFor(date)`.
 
-- [ ] **Step 1: Write catalog and fallback tests that require all 31 colleges and four explicit unknown meals**
+- [x] **Step 1: Write catalog and fallback tests that require all 31 colleges and four explicit unknown meals**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -64,13 +64,13 @@ it("builds a complete explicit unknown day", () => {
 });
 ```
 
-- [ ] **Step 2: Run the focused tests and confirm the new imports fail**
+- [x] **Step 2: Run the focused tests and confirm the new imports fail**
 
 Run: `npm test -- tests/domain/catalog.test.ts tests/domain/fallback-day.test.ts`
 
 Expected: FAIL because `catalog.ts`, `fallback-day.ts`, and the enriched types do not exist.
 
-- [ ] **Step 3: Define exact normalized types and the catalog shape**
+- [x] **Step 3: Define exact normalized types and the catalog shape**
 
 ```ts
 export const MEAL_TYPES = ["breakfast", "brunch", "lunch", "dinner"] as const;
@@ -109,7 +109,7 @@ export interface CollegeProfile { id: CollegeId; name: string; diningArea: strin
 
 Populate `COLLEGES` as a readonly array using the 31 names, IDs, dining-area/map queries, retrieval classes, and source URLs from the approved spec. Import `COLLEGE_IDS` and `CollegeId` from `types.ts`; assert at module load that every tuple ID has exactly one profile and no profile has an unknown ID.
 
-- [ ] **Step 4: Implement the unknown-day constructor and supported Full Term boundaries**
+- [x] **Step 4: Implement the unknown-day constructor and supported Full Term boundaries**
 
 ```ts
 export function unknownDiningDay(profile: CollegeProfile, date: IsoDate, fetchedAt: string, freshness: Freshness, warning?: string): DiningDay {
@@ -146,13 +146,13 @@ export function unknownDiningDay(profile: CollegeProfile, date: IsoDate, fetched
 
 Encode published Full Term start/end pairs for 2025–26 through 2028–29 in `dates.ts`. `termStatusFor` returns `Full Term`, `Outside Full Term`, or `Term dates not confirmed`; it never extrapolates.
 
-- [ ] **Step 5: Run domain tests and type checking**
+- [x] **Step 5: Run domain tests and type checking**
 
 Run: `npm test -- tests/domain/catalog.test.ts tests/domain/fallback-day.test.ts tests/domain/dates.test.ts && npm run typecheck`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit the domain milestone**
+- [x] **Step 6: Commit the domain milestone**
 
 ```bash
 git add src/domain tests/domain

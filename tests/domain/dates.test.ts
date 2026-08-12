@@ -4,6 +4,7 @@ import {
   formatCambridgeTimestamp,
   isIsoDate,
   todayInCambridge,
+  termStatusFor,
   weekdayForIso
 } from "../../src/domain/dates";
 
@@ -25,5 +26,12 @@ describe("Cambridge dates", () => {
 
   it("formats timestamps in the Cambridge timezone", () => {
     expect(formatCambridgeTimestamp("2026-08-11T23:30:00.000Z")).toBe("12 Aug 2026, 00:30");
+  });
+
+  it("uses published Full Term boundaries without extrapolating", () => {
+    expect(termStatusFor("2026-10-06")).toBe("Full Term");
+    expect(termStatusFor("2026-12-04")).toBe("Full Term");
+    expect(termStatusFor("2026-12-05")).toBe("Outside Full Term");
+    expect(termStatusFor("2030-10-08")).toBe("Term dates not confirmed");
   });
 });

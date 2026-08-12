@@ -1,5 +1,5 @@
 import { weekdayForIso } from "./dates";
-import { MEAL_TYPES, type CollegeId, type DiningDay, type IsoDate, type MealRecord, type MealType, type SourceLink } from "./types";
+import { MEAL_TYPES, type CollegeId, type DiningDay, type IsoDate, type MealRecord, type MealType, type MenuContent, type SourceLink } from "./types";
 
 const MISSING_TIME = "Time not published";
 const MISSING_MENU = "Menu not published";
@@ -35,7 +35,7 @@ export interface UnknownDiningDayInput {
   fetchedAt: string;
 }
 
-export function createUnknownDiningDay(input: UnknownDiningDayInput): DiningDay {
+export function createUnknownDiningDay(input: UnknownDiningDayInput): DiningDay<MenuContent> {
   const meals = {} as Record<MealType, MealRecord>;
   for (const type of MEAL_TYPES) {
     meals[type] = unknownMeal(type);

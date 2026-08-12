@@ -1,5 +1,5 @@
 import { formatCambridgeTimestamp, weekdayForIso } from "../domain/dates";
-import { MEAL_TYPES, type CollegeViewState, type DashboardState, type DiningDay, type MealRecord, type SourceLink } from "../domain/types";
+import { MEAL_TYPES, type CollegeViewState, type DashboardState, type DiningDay, type MealRecord, type MenuContent, type SourceLink } from "../domain/types";
 
 export interface DashboardActions {
   previousDate(): void;
@@ -67,7 +67,13 @@ function pdfTitle(collegeName: string, mealLabel: string, label: string, url: st
   return `${collegeName} ${mealLabel.toLowerCase()} menu for ${week}`;
 }
 
-function appendMenu(parent: HTMLElement, menu: MealRecord["menu"], collegeName: string, mealLabel: string): void {
+function appendMenu(parent: HTMLElement, menu: MenuContent | MenuContent[], collegeName: string, mealLabel: string): void {
+  if (Array.isArray(menu)) {
+    for (const entry of menu) {
+      appendMenu(parent, entry, collegeName, mealLabel);
+    }
+    return;
+  }
   const container = element("div");
   container.className = "menu";
   container.append(element("strong", "Menu:"));
@@ -91,13 +97,18 @@ function appendMenu(parent: HTMLElement, menu: MealRecord["menu"], collegeName: 
       appendExternalLink(object, menu.label, safeUrl);
       container.append(object);
     }
+  } else if (menu.kind === "image" || menu.kind === "link") {
+    const link = appendExternalLink(container, menu.label, menu.url);
+    if (link === null) {
+      container.append(document.createTextNode(" Menu unavailable"));
+    }
   } else {
     container.append(document.createTextNode(` ${menu.message}`));
   }
   parent.append(container);
 }
 
-function appendMeal(parent: HTMLElement, meal: MealRecord, collegeName: string, collegeId: string): void {
+function appendMeal(parent: HTMLElement, meal: MealRecord<MenuContent | MenuContent[]>, collegeName: string, collegeId: string): void {
   const section = element("section");
   const mealLabel = { breakfast: "Breakfast", brunch: "Brunch", lunch: "Lunch", dinner: "Dinner" }[meal.type];
   const headingId = `${collegeId}-${meal.type}-heading`;
@@ -153,13 +164,13 @@ function appendNotices(parent: HTMLElement, notices: string[], collegeId: string
   parent.append(section);
 }
 
-function appendState(parent: HTMLElement, state: "live" | "stale" | "loading" | "error", text: string): void {
+function appendState(parent: HTMLElement, state: "live" | "scheduled" | "cached" | "stale" | "loading" | "error", text: string): void {
   const region = element("p");
   region.className = "state";
   region.dataset.state = state;
   region.setAttribute("role", "status");
   region.setAttribute("aria-live", "polite");
-  const iconText = { live: "●", stale: "⚠", loading: "…", error: "!" }[state];
+  const iconText = { live: "●", scheduled: "◷", cached: "⚠", stale: "⚠", loading: "…", error: "!" }[state];
   const icon = element("span", iconText);
   icon.className = "state-icon";
   icon.setAttribute("aria-hidden", "true");
@@ -177,7 +188,11 @@ function appendReadyCard(parent: HTMLElement, day: DiningDay): void {
   appendState(
     card,
     day.freshness,
-    day.freshness === "live" ? "Freshness: Live data" : "Freshness: Cached result (stale data)"
+    day.freshness === "live"
+      ? "Freshness: Live data"
+      : day.freshness === "scheduled"
+        ? "Freshness: Scheduled snapshot"
+        : "Freshness: Cached result (stale data)"
   );
   card.append(element("p", `Last checked: ${formatCambridgeTimestamp(day.fetchedAt)}`));
   for (const mealType of MEAL_TYPES) {

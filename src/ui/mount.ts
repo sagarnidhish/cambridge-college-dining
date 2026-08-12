@@ -1,9 +1,9 @@
 import type { DashboardSession } from "../app/dashboard-session";
 import { addIsoDays, isIsoDate, todayInCambridge } from "../domain/dates";
-import type { CollegeId, DashboardState, IsoDate } from "../domain/types";
+import type { DashboardState, IsoDate, LiveCollegeId } from "../domain/types";
 import { renderDashboard, type DashboardActions } from "./render";
 
-const collegeNames: Record<CollegeId, string> = {
+const collegeNames: Record<LiveCollegeId, string> = {
   churchill: "Churchill College",
   "st-edmunds": "St Edmund's College"
 };

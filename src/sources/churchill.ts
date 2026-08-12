@@ -1,6 +1,6 @@
 import { addIsoDays, weekdayForIso } from "../domain/dates";
 import { closedMeal, createUnknownDiningDay, unknownMeal } from "../domain/meals";
-import { MEAL_TYPES, type DiningDay, type IsoDate, type MealRecord, type MealType, type SourceLink } from "../domain/types";
+import { MEAL_TYPES, type DiningDay, type IsoDate, type MealRecord, type MealType, type MenuContent, type SourceLink } from "../domain/types";
 import { htmlLines, normalizeWhitespace, type WordPressPage } from "./wordpress";
 
 const CHURCHILL_NAME = "Churchill College";
@@ -114,7 +114,7 @@ function publishedNotices(document: Document): string[] {
     .filter((line) => /^Please note:/i.test(line));
 }
 
-export function parseChurchillDay(page: WordPressPage, selectedDate: IsoDate, fetchedAt: string): DiningDay {
+export function parseChurchillDay(page: WordPressPage, selectedDate: IsoDate, fetchedAt: string): DiningDay<MenuContent> {
   const sourceLinks = [{ label: "Churchill lunch and dinner menu", url: page.link }];
   const unknownDay = createUnknownDiningDay({
     college: "churchill",

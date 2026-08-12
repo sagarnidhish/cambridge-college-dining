@@ -7,6 +7,7 @@ import {
   type IsoDate,
   type MealRecord,
   type MealType,
+  type MenuContent,
   type SourceLink
 } from "../domain/types";
 import { htmlLines, normalizeWhitespace, type WordPressPage, type WordPressPost } from "./wordpress";
@@ -419,7 +420,7 @@ export function parseStEdmundsDay(
   cateringPage: WordPressPage,
   selectedDate: IsoDate,
   fetchedAt: string
-): DiningDay {
+): DiningDay<MenuContent> {
   const schedule = parseStEdmundsSchedule(cateringPage);
   const weekly = matchingWeeklyPost(posts, selectedDate);
   const links = sourceLinks(cateringPage, weekly?.post ?? null);

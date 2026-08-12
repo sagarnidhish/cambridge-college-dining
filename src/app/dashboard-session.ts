@@ -2,7 +2,7 @@ import { parseChurchillDay } from "../sources/churchill";
 import { fetchChurchillSnapshot, fetchStEdmundsSnapshot, type ChurchillSnapshot, type StEdmundsSnapshot } from "../sources/fetch";
 import { parseStEdmundsDay } from "../sources/st-edmunds";
 import { loadCachedDay, saveCachedDay } from "../storage/cache";
-import type { CollegeId, CollegeViewState, DashboardState, DiningDay, IsoDate, SourceLink } from "../domain/types";
+import type { CollegeId, CollegeViewState, DashboardState, DiningDay, IsoDate, LiveCollegeId, SourceLink } from "../domain/types";
 
 export interface DashboardSession {
   refresh(selectedDate: IsoDate): Promise<DashboardState>;
@@ -14,12 +14,12 @@ interface RetainedSnapshot<T> {
   fetchedAt: string;
 }
 
-const collegeNames: Record<CollegeId, string> = {
+const collegeNames: Record<LiveCollegeId, string> = {
   churchill: "Churchill College",
   "st-edmunds": "St Edmund's College"
 };
 
-const sourceLinks: Record<CollegeId, SourceLink[]> = {
+const sourceLinks: Record<LiveCollegeId, SourceLink[]> = {
   churchill: [{ label: "Churchill lunch and dinner menu", url: "https://www.chu.cam.ac.uk/about/campus/dining-at-college/lunch-and-dinner-menu/" }],
   "st-edmunds": [
     { label: "St Edmund's menu archive", url: "https://my.st-edmunds.cam.ac.uk/category/menus/" },
@@ -27,7 +27,7 @@ const sourceLinks: Record<CollegeId, SourceLink[]> = {
   ]
 };
 
-function errorState(college: CollegeId): CollegeViewState {
+function errorState(college: LiveCollegeId): CollegeViewState {
   return {
     status: "error",
     college,
@@ -53,7 +53,7 @@ export function createDashboardSession(deps: {
     return { status: "ready", day };
   }
 
-  function cachedOrError(college: CollegeId, selectedDate: IsoDate): CollegeViewState {
+  function cachedOrError(college: LiveCollegeId, selectedDate: IsoDate): CollegeViewState {
     const day = loadCachedDay(deps.storage, college, selectedDate);
     return day === null ? errorState(college) : { status: "ready", day };
   }
