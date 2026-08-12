@@ -1,107 +1,103 @@
 import { isIsoDate, weekdayForIso } from "../domain/dates";
-import { MEAL_TYPES, type CollegeId, type DiningDay, type IsoDate, type MealRecord, type MealType, type SourceLink } from "../domain/types";
+import { COLLEGE_IDS, MEAL_TYPES, type CollegeId, type DiningDay, type IsoDate, type MealType } from "../domain/types";
 
 interface CacheEnvelope {
-  version: 1;
+  version: 2;
   college: CollegeId;
   date: IsoDate;
   day: DiningDay;
 }
 
 function cacheKey(college: CollegeId, date: IsoDate): string {
-  return `college-dining:v1:${college}:${date}`;
+  return `college-dining:v2:${college}:${date}`;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isCollegeId(value: unknown): value is CollegeId {
-  return value === "churchill" || value === "st-edmunds";
+function timestamp(value: unknown): value is string {
+  return typeof value === "string" && value.trim() !== "" && Number.isFinite(Date.parse(value));
 }
 
-function isStringArray(value: unknown): value is string[] {
+function httpsUrl(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  try { return new URL(value).protocol === "https:"; } catch { return false; }
+}
+
+function strings(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
-function isSourceLinks(value: unknown): value is SourceLink[] {
-  return Array.isArray(value) && value.every((link) => isRecord(link) && typeof link.label === "string" && typeof link.url === "string");
+function links(value: unknown): boolean {
+  return Array.isArray(value) && value.every((link) => record(link) && typeof link.label === "string" && httpsUrl(link.url));
 }
 
-function isMenu(value: unknown): boolean {
-  if (!isRecord(value) || typeof value.kind !== "string") {
-    return false;
-  }
-  if (value.kind === "items") {
-    return isStringArray(value.items);
-  }
-  if (value.kind === "pdf") {
-    return typeof value.label === "string" && typeof value.url === "string";
-  }
-  return value.kind === "message" && typeof value.message === "string";
+function menuEntry(value: unknown): boolean {
+  if (!record(value) || typeof value.kind !== "string") return false;
+  if (value.kind === "items") return strings(value.items);
+  if (value.kind === "message") return typeof value.message === "string";
+  if (value.kind === "pdf" || value.kind === "link") return typeof value.label === "string" && httpsUrl(value.url);
+  return value.kind === "image" && typeof value.label === "string" && typeof value.alt === "string" && httpsUrl(value.url);
 }
 
-function isMealRecord(value: unknown, type: MealType): value is MealRecord {
-  return isRecord(value)
+function menu(value: unknown): boolean {
+  return Array.isArray(value) ? value.length > 0 && value.every(menuEntry) : menuEntry(value);
+}
+
+function meal(value: unknown, type: MealType): boolean {
+  return record(value)
     && value.type === type
-    && (value.availability === "available" || value.availability === "closed" || value.availability === "unknown")
+    && ["available", "closed", "unknown"].includes(String(value.availability))
     && typeof value.time === "string"
-    && isMenu(value.menu)
-    && isStringArray(value.notes)
-    && isSourceLinks(value.sourceLinks);
+    && menu(value.menu)
+    && strings(value.notes)
+    && (value.restrictions === undefined || strings(value.restrictions))
+    && links(value.sourceLinks);
 }
 
-function isDiningDay(value: unknown, college: CollegeId, date: IsoDate): value is DiningDay {
-  if (!isRecord(value)
+function diningDay(value: unknown, college: CollegeId, date: IsoDate): value is DiningDay {
+  if (!record(value)
     || value.college !== college
     || typeof value.collegeName !== "string"
     || value.date !== date
     || value.weekday !== weekdayForIso(date)
     || value.timeZone !== "Europe/London"
-    || !isRecord(value.meals)
-    || !isStringArray(value.notices)
-    || !isSourceLinks(value.sourceLinks)
-    || (value.sourceModifiedAt !== null && !isTimestamp(value.sourceModifiedAt))
-    || !isTimestamp(value.fetchedAt)
-    || (value.freshness !== "live" && value.freshness !== "stale")) {
-    return false;
-  }
+    || !record(value.meals)
+    || !strings(value.notices)
+    || !links(value.sourceLinks)
+    || (value.sourceModifiedAt !== null && !timestamp(value.sourceModifiedAt))
+    || !timestamp(value.fetchedAt)
+    || !["live", "scheduled", "cached", "stale"].includes(String(value.freshness))) return false;
   const meals = value.meals;
-  return MEAL_TYPES.every((type) => isMealRecord(meals[type], type));
+  return MEAL_TYPES.every((type) => meal(meals[type], type));
 }
 
-function isTimestamp(value: unknown): value is string {
-  return typeof value === "string" && Number.isFinite(Date.parse(value));
-}
-
-function isCacheEnvelope(value: unknown, college: CollegeId, date: IsoDate): value is CacheEnvelope {
-  return isRecord(value)
-    && value.version === 1
+function envelope(value: unknown, college: CollegeId, date: IsoDate): value is CacheEnvelope {
+  return record(value)
+    && value.version === 2
     && value.college === college
     && value.date === date
-    && isDiningDay(value.day, college, date);
+    && isIsoDate(value.date)
+    && diningDay(value.day, college, date);
 }
 
 export function saveCachedDay(storage: Storage, day: DiningDay): void {
   try {
-    const envelope: CacheEnvelope = { version: 1, college: day.college, date: day.date, day };
-    storage.setItem(cacheKey(day.college, day.date), JSON.stringify(envelope));
+    const value: CacheEnvelope = { version: 2, college: day.college, date: day.date, day };
+    storage.setItem(cacheKey(day.college, day.date), JSON.stringify(value));
   } catch {
-    // Cache writes are an optional resilience feature.
+    // Browser storage is optional resilience only.
   }
 }
 
 export function loadCachedDay(storage: Storage, college: CollegeId, date: IsoDate): DiningDay | null {
+  if (!COLLEGE_IDS.includes(college)) return null;
   try {
     const raw = storage.getItem(cacheKey(college, date));
-    if (raw === null) {
-      return null;
-    }
+    if (raw === null) return null;
     const parsed: unknown = JSON.parse(raw);
-    if (!isCacheEnvelope(parsed, college, date) || !isIsoDate(parsed.date)) {
-      return null;
-    }
-    return { ...parsed.day, freshness: "stale" };
+    return envelope(parsed, college, date) ? { ...parsed.day, freshness: "cached" } : null;
   } catch {
     return null;
   }

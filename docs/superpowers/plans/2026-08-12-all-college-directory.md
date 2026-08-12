@@ -174,7 +174,7 @@ git commit -m "feat: add all-college dining domain"
 - Consumes: `DiningDay`, `CollegeProfile`, `COLLEGES`, `unknownDiningDay`.
 - Produces: `ScheduledSnapshot`, `parseScheduledSnapshot(value)`, `scheduledDayFor(snapshot, profile, date)`, `loadCachedDay(storage, college, date)`, and `saveCachedDay(storage, day)` using cache key version `v2`.
 
-- [ ] **Step 1: Write failing validation, normalization, and cache tests**
+- [x] **Step 1: Write failing validation, normalization, and cache tests**
 
 ```ts
 it("rejects a snapshot missing one scheduled college", () => {
@@ -196,13 +196,13 @@ it("loads only a valid exact-date v2 cached day and relabels it cached", () => {
 });
 ```
 
-- [ ] **Step 2: Run the focused tests and verify RED**
+- [x] **Step 2: Run the focused tests and verify RED**
 
 Run: `npm test -- tests/snapshots/schema.test.ts tests/snapshots/normalize.test.ts tests/storage/cache.test.ts`
 
 Expected: FAIL because the snapshot modules and cache v2 validator are absent.
 
-- [ ] **Step 3: Implement a fail-closed JSON validator**
+- [x] **Step 3: Implement a fail-closed JSON validator**
 
 Use this deployable shape:
 
@@ -224,21 +224,21 @@ export interface ScheduledSnapshot { schemaVersion: 2; collectedAt: string; coll
 
 Validate plain objects, exact schema version, parseable timestamps, ISO dates, HTTPS source/menu URLs, known college IDs, and the exact set of 27 scheduled IDs. Reject `available` meals whose time and menu are both unpublished. Unknown input must never be type-cast without checks.
 
-- [ ] **Step 4: Add a schema-valid bootstrap with all 27 scheduled profiles**
+- [x] **Step 4: Add a schema-valid bootstrap with all 27 scheduled profiles**
 
 Create `public/data/college-dining.json` with `schemaVersion: 2`, a real generation timestamp, and one record for each scheduled catalog entry. Use `link-only` when only a verification link is safe. Use `schedule` only for recurring hours explicitly supported by the source inventory. All absent meal facts remain unknown.
 
-- [ ] **Step 5: Implement snapshot normalization and cache v2**
+- [x] **Step 5: Implement snapshot normalization and cache v2**
 
 `scheduledDayFor` starts from `unknownDiningDay`, overlays only a matching dated meal or an explicitly recurring meal, keeps missing fields unknown, combines notices, and preserves the record timestamp. `cache.ts` validates all 31 IDs, exact weekday/date consistency, parseable timestamps, HTTPS links, four meal keys, enriched access/price fields, and stores under `college-dining:v2:<college>:<date>`.
 
-- [ ] **Step 6: Run focused tests and type checking**
+- [x] **Step 6: Run focused tests and type checking**
 
 Run: `npm test -- tests/snapshots tests/storage/cache.test.ts && npm run typecheck`
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit the snapshot milestone**
+- [x] **Step 7: Commit the snapshot milestone**
 
 ```bash
 git add src/snapshots src/storage/cache.ts public/data/college-dining.json tests/snapshots tests/storage/cache.test.ts

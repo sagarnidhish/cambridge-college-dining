@@ -108,7 +108,7 @@ describe("DashboardSession", () => {
     });
   });
 
-  it("uses the exact-date Churchill cache as stale data after a Churchill failure", async () => {
+  it("uses the exact-date Churchill cache as cached data after a Churchill failure", async () => {
     const cached = createUnknownDiningDay({
       college: "churchill",
       collegeName: "Churchill College",
@@ -116,7 +116,7 @@ describe("DashboardSession", () => {
       sourceLinks: [{ label: "View official source", url: "https://www.chu.cam.ac.uk/" }],
       fetchedAt: "2026-08-10T20:00:00.000Z"
     });
-    localStorage.setItem("college-dining:v1:churchill:2026-08-11", JSON.stringify({ version: 1, college: "churchill", date: selectedDate, day: cached }));
+    localStorage.setItem("college-dining:v2:churchill:2026-08-11", JSON.stringify({ version: 2, college: "churchill", date: selectedDate, day: cached }));
     const state = await makeSession(fetchWith({
       ...successfulResponses(),
       [CHURCHILL_API]: new Error("Churchill unavailable")
@@ -124,7 +124,7 @@ describe("DashboardSession", () => {
 
     expect(state.colleges.churchill).toMatchObject({
       status: "ready",
-      day: { freshness: "stale", fetchedAt: "2026-08-10T20:00:00.000Z" }
+      day: { freshness: "cached", fetchedAt: "2026-08-10T20:00:00.000Z" }
     });
   });
 
@@ -158,7 +158,7 @@ describe("DashboardSession", () => {
     });
     expect(refreshed.colleges.churchill).toMatchObject({
       status: "ready",
-      day: { freshness: "stale", fetchedAt: "2026-08-11T21:35:00.000Z" }
+      day: { freshness: "cached", fetchedAt: "2026-08-11T21:35:00.000Z" }
     });
   });
 
@@ -170,7 +170,7 @@ describe("DashboardSession", () => {
       sourceLinks: [{ label: "View official source", url: "https://www.chu.cam.ac.uk/" }],
       fetchedAt: "2026-08-10T20:00:00.000Z"
     });
-    localStorage.setItem("college-dining:v1:churchill:2026-08-10", JSON.stringify({ version: 1, college: "churchill", date: "2026-08-10", day: cached }));
+    localStorage.setItem("college-dining:v2:churchill:2026-08-10", JSON.stringify({ version: 2, college: "churchill", date: "2026-08-10", day: cached }));
     const state = await makeSession(fetchWith({
       ...successfulResponses(),
       [CHURCHILL_API]: new Error("Churchill unavailable")
@@ -266,7 +266,7 @@ describe("DashboardSession", () => {
       [ST_EDMUNDS_CATERING_API]: () => jsonResponse(invalidCatering)
     }, [])).refresh(selectedDate);
 
-    expect(drifted.colleges["st-edmunds"]).toMatchObject({ status: "ready", day: { freshness: "stale", fetchedAt: "2026-08-11T21:35:00.000Z" } });
+    expect(drifted.colleges["st-edmunds"]).toMatchObject({ status: "ready", day: { freshness: "cached", fetchedAt: "2026-08-11T21:35:00.000Z" } });
   });
 
   it("does not replace an exact-date cache when St Edmund's timetable has no recognized services", async () => {
@@ -282,7 +282,7 @@ describe("DashboardSession", () => {
       [ST_EDMUNDS_CATERING_API]: () => jsonResponse(unrecognizedCatering)
     }, [])).refresh(selectedDate);
 
-    expect(drifted.colleges["st-edmunds"]).toMatchObject({ status: "ready", day: { freshness: "stale", fetchedAt: "2026-08-11T21:35:00.000Z" } });
+    expect(drifted.colleges["st-edmunds"]).toMatchObject({ status: "ready", day: { freshness: "cached", fetchedAt: "2026-08-11T21:35:00.000Z" } });
   });
 
   it("timestamps each college when its source snapshot settles", async () => {
