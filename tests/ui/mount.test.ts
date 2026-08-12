@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import type { DashboardSession } from "../../src/app/dashboard-session";
 import { COLLEGES } from "../../src/domain/catalog";
-import type { CollegeViewState, DashboardState, IsoDate } from "../../src/domain/types";
+import { collegeById } from "../../src/domain/catalog";
+import { unknownDiningDay } from "../../src/domain/fallback-day";
+import type { CollegeId, CollegeViewState, DashboardState, IsoDate } from "../../src/domain/types";
 import { mountDashboard } from "../../src/ui/mount";
 
 const today = "2026-08-11" as const;
@@ -26,7 +28,7 @@ function session(): DashboardSession & { refresh: ReturnType<typeof vi.fn>; sele
   };
 }
 
-async function mounted(source = session()) {
+async function mounted(source: DashboardSession = session()) {
   const root = document.createElement("main");
   await mountDashboard(root, source, () => new Date("2026-08-11T12:00:00.000Z"));
   return root;
@@ -119,5 +121,29 @@ describe("mountDashboard", () => {
       history.replaceState({}, "", "/");
       root.remove();
     }
+  });
+
+  it("reconciles map focus when the selected college is no longer eligible", async () => {
+    const evidence = { label: "Dining evidence", url: "https://example.edu/dining", evidence: "official-college" as const };
+    const eligible = (date: IsoDate, ids: CollegeId[]): DashboardState => {
+      const result = state(date);
+      for (const id of ids) {
+        const profile = collegeById(id);
+        const day = unknownDiningDay(profile, date, `${date}T08:00:00.000Z`, "scheduled");
+        day.access = { classification: id === "downing" ? "unhosted-cambridge" : "guest-required", summary: "Published access", guestRules: "Verify", payment: "Card", sourceLinks: [evidence] };
+        day.meals.lunch = { ...day.meals.lunch, availability: "available", time: "12:00–13:00", serviceWindow: { kind: "year-round", source: evidence }, sourceLinks: [evidence] };
+        result.colleges[id] = { status: "ready", day };
+      }
+      return result;
+    };
+    const source: DashboardSession = {
+      refresh: async (date) => eligible(date, ["downing", "churchill"]),
+      selectDate: (date) => eligible(date, ["downing"])
+    };
+    const root = await mounted(source);
+    root.querySelector<HTMLButtonElement>('[data-map-college="churchill"]')!.click();
+    expect(root.querySelector("iframe")?.getAttribute("title")).toContain("Churchill College");
+    root.querySelector<HTMLButtonElement>('button[name="next"]')!.click();
+    expect(root.querySelector("iframe")?.getAttribute("title")).toContain("Downing College");
   });
 });

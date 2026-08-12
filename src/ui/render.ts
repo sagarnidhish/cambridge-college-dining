@@ -5,12 +5,14 @@ import { appendDetailDialog } from "./detail-dialog";
 import { appendMethodology } from "./methodology";
 import { appendPageCounter } from "./counter";
 import type { AppView } from "./query-state";
+import { appendEatabilityPanel } from "./eatability-panel";
 
 export type DashboardFilter = "serving" | "unhosted" | "menuPublished" | "accessUnknown";
 
 export interface DashboardViewState {
   dashboard: DashboardState;
   options: TableOptions;
+  focusedEatabilityCollege: CollegeId | null;
   selectedCollege: CollegeId | null;
   view: AppView;
 }
@@ -45,6 +47,7 @@ export interface DashboardActions {
   setFilter(filter: DashboardFilter, checked: boolean): void;
   sortBy(column: TableSort): void;
   clearFilters(): void;
+  focusEatabilityCollege(college: CollegeId): void;
   openCollege(college: CollegeId): void;
   closeCollege(): void;
 }
@@ -232,6 +235,10 @@ export function renderDashboard(root: HTMLElement, view: DashboardViewState, act
     directory.append(element("h1", "Cambridge college dining"));
     directory.append(element("p", "Compare published dining information across all 31 Cambridge colleges."));
     appendDateControls(directory, view.dashboard.selectedDate, actions);
+    appendEatabilityPanel(directory, view.dashboard, view.focusedEatabilityCollege, {
+      focusCollege: actions.focusEatabilityCollege,
+      openCollege: actions.openCollege
+    });
     appendDirectoryControls(directory, view.options, actions);
     appendDirectoryTable(directory, view, actions);
   } else {

@@ -130,6 +130,28 @@ button:hover { background: #174f79; }
 
 .result-count { margin: .75rem 0; color: var(--muted); font-weight: 750; }
 
+.eatability-panel {
+  margin: 1.2rem 0;
+  border: 1px solid var(--line);
+  border-radius: .55rem;
+  padding: 1rem;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.eatability-panel > h2 { margin-top: 0; }
+.eatability-count { color: var(--muted); font-weight: 750; }
+.eatability-layout { display: grid; grid-template-columns: minmax(20rem, 1fr) minmax(22rem, 1.15fr); gap: 1rem; }
+.eatability-tier h3 { margin-top: .5rem; }
+.eatability-tier ul { display: grid; gap: .55rem; margin: 0; padding: 0; list-style: none; }
+.eatability-tier li { display: grid; grid-template-columns: 1fr auto; align-items: stretch; gap: .4rem; }
+.eatability-result { display: grid; gap: .12rem; min-width: 0; text-align: left; }
+.eatability-result[aria-pressed="true"] { outline: 3px solid var(--focus); outline-offset: 1px; background: #174f79; }
+.eatability-result span { font-size: .9rem; font-weight: 500; }
+.eatability-details { align-self: stretch; padding-inline: .65rem; }
+.eatability-map { display: grid; align-content: start; gap: .5rem; min-width: 0; }
+.eatability-map iframe { width: 100%; height: 20rem; border: 1px solid var(--line); }
+
 .table-scroll {
   max-width: 100%;
   overflow-x: auto;
@@ -209,6 +231,8 @@ footer { margin-top: 2rem; border-top: 2px solid var(--navy); padding-top: 1rem;
   .date-controls label, .date-controls input { width: 100%; }
   .directory-controls { align-items: stretch; }
   .directory-controls fieldset { display: grid; grid-template-columns: 1fr; }
+  .eatability-layout { grid-template-columns: 1fr; }
+  .eatability-map iframe { min-height: 15rem; height: 45vh; }
   .college-table { min-width: 33rem; }
   .college-table .optional-column { display: none; }
   .college-table th, .college-table td { padding: .55rem; }

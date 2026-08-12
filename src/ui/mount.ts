@@ -2,6 +2,7 @@ import type { DashboardSession } from "../app/dashboard-session";
 import { COLLEGES } from "../domain/catalog";
 import { addIsoDays, isIsoDate, todayInCambridge } from "../domain/dates";
 import type { CollegeId, DashboardState, IsoDate } from "../domain/types";
+import { eatabilityResults } from "../domain/eatability";
 import { DEFAULT_TABLE_OPTIONS, type TableOptions } from "./table-model";
 import { renderDashboard, type DashboardActions, type DashboardFilter } from "./render";
 import { collegeFromLocation, setCollegeInHistory, viewFromLocation, type AppView } from "./query-state";
@@ -25,13 +26,20 @@ export async function mountDashboard(
   let selectedDate = todayInCambridge(now());
   let dashboard = loadingState(selectedDate);
   let options: TableOptions = { ...DEFAULT_TABLE_OPTIONS };
+  let focusedEatabilityCollege: CollegeId | null = null;
   let selectedCollege: CollegeId | null = collegeFromLocation(window.location);
   let view: AppView = viewFromLocation(window.location);
   let lastSelectedCollege: CollegeId | null = selectedCollege;
   let refreshGeneration = 0;
 
   const render = (): void => {
-    renderDashboard(root, { dashboard, options, selectedCollege, view }, actions);
+    const eligible = eatabilityResults(dashboard);
+    if (!eligible.some(({ college }) => college === focusedEatabilityCollege)) {
+      focusedEatabilityCollege = eligible.find(({ tier }) => tier === "confirmed")?.college
+        ?? eligible.find(({ tier }) => tier === "host-required")?.college
+        ?? null;
+    }
+    renderDashboard(root, { dashboard, options, focusedEatabilityCollege, selectedCollege, view }, actions);
     if (view === "directory" && selectedCollege !== null) root.querySelector<HTMLButtonElement>('dialog button[name="close-details"]')?.focus();
   };
 
@@ -75,6 +83,10 @@ export async function mountDashboard(
       render();
     },
     clearFilters: () => { options = { ...DEFAULT_TABLE_OPTIONS }; render(); },
+    focusEatabilityCollege: (college) => {
+      if (eatabilityResults(dashboard).some((result) => result.college === college)) focusedEatabilityCollege = college;
+      render();
+    },
     openCollege: (college) => {
       selectedCollege = college;
       lastSelectedCollege = college;

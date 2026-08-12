@@ -28,13 +28,14 @@ function actions(): DashboardActions {
     setFilter: vi.fn(),
     sortBy: vi.fn(),
     clearFilters: vi.fn(),
+    focusEatabilityCollege: vi.fn(),
     openCollege: vi.fn(),
     closeCollege: vi.fn()
   };
 }
 
 function view(overrides: Partial<DashboardViewState> = {}): DashboardViewState {
-  return { dashboard: dashboard(), options: { ...DEFAULT_TABLE_OPTIONS }, selectedCollege: null, view: "directory", ...overrides };
+  return { dashboard: dashboard(), options: { ...DEFAULT_TABLE_OPTIONS }, focusedEatabilityCollege: null, selectedCollege: null, view: "directory", ...overrides };
 }
 
 describe("directory rendering", () => {
@@ -47,6 +48,15 @@ describe("directory rendering", () => {
     ]);
     expect(root.querySelectorAll("tbody tr")).toHaveLength(31);
     expect([...root.querySelectorAll<HTMLButtonElement>(".college-row-button")].map(({ textContent }) => textContent)).toEqual(COLLEGES.map(({ name }) => name));
+  });
+
+  it("places the date-specific eatability panel before the full directory controls", () => {
+    const root = document.createElement("main");
+    renderDashboard(root, view(), actions());
+    const panel = root.querySelector(".eatability-panel");
+    const controls = root.querySelector(".directory-controls");
+    expect(panel).not.toBeNull();
+    expect(panel!.compareDocumentPosition(controls!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("opens a college through a descriptive row button", () => {
