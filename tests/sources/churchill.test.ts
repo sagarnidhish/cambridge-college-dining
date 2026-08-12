@@ -7,9 +7,16 @@ describe("parseChurchillDay", () => {
     const day = parseChurchillDay(CHURCHILL_PAGE_FIXTURE, "2026-08-11", "2026-08-11T21:35:14.000Z");
 
     expect(day.weekday).toBe("Tuesday");
+    expect(day).toMatchObject({
+      college: "churchill",
+      freshness: "live",
+      coverage: "menu",
+      access: { classification: "guest-required" },
+      location: { diningArea: "Dining Hall" }
+    });
     expect(day.meals.breakfast).toMatchObject({ availability: "available", time: "07:30–09:30" });
-    expect(day.meals.lunch.menu).toMatchObject({ kind: "items" });
-    expect(day.meals.lunch.menu.kind === "items" && day.meals.lunch.menu.items).toContain(
+    expect(day.meals.lunch.menu[0]).toMatchObject({ kind: "items" });
+    expect(day.meals.lunch.menu[0]?.kind === "items" && day.meals.lunch.menu[0].items).toContain(
       "Today's Special: Churchill Trattoria"
     );
     expect(day.meals.dinner.time).toBe("17:45–19:10");
@@ -22,7 +29,7 @@ describe("parseChurchillDay", () => {
     const day = parseChurchillDay(CHURCHILL_PAGE_FIXTURE, "2026-08-12", "2026-08-11T21:35:14.000Z");
 
     expect(day.meals.lunch.availability).toBe("available");
-    expect(day.meals.lunch.menu).toEqual({ kind: "message", message: "Menu not published" });
+    expect(day.meals.lunch.menu).toEqual([{ kind: "message", message: "Menu not published" }]);
   });
 
   it("distinguishes Saturday brunch from lunch", () => {
@@ -36,6 +43,7 @@ describe("parseChurchillDay", () => {
     const day = parseChurchillDay(CHURCHILL_PAGE_FIXTURE, "2026-08-18", "2026-08-11T21:35:14.000Z");
 
     expect(day.meals.lunch.availability).toBe("unknown");
+    expect(day.coverage).toBe("link-only");
     expect(day.notices).toContain("No Churchill schedule is published for this date.");
     expect(day.sourceModifiedAt).toBe("2026-08-11T15:52:23");
   });

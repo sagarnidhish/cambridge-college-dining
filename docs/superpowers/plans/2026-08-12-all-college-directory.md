@@ -260,7 +260,7 @@ git commit -m "feat: add validated scheduled dining snapshots"
 - Consumes: enriched `DiningDay`, `MealRecord.menu[]`, `collegeById`, and existing WordPress snapshots.
 - Produces: unchanged call signatures `parseChurchillDay(page, date, fetchedAt)` and `parseStEdmundsDay(posts, cateringPage, date, fetchedAt)` returning enriched live days.
 
-- [ ] **Step 1: Extend adapter assertions before changing implementation**
+- [x] **Step 1: Extend adapter assertions before changing implementation**
 
 ```ts
 expect(day).toMatchObject({
@@ -276,27 +276,27 @@ expect(day.meals.lunch.restrictions).toEqual(expect.any(Array));
 
 Retain the existing regression cases for split St Edmund's notices, AM/PM timetable rows, weekly headings without a year, exception times, week-aware date resolution, and complete schedule drift.
 
-- [ ] **Step 2: Run the two adapter suites and confirm type/shape failures**
+- [x] **Step 2: Run the two adapter suites and confirm type/shape failures**
 
 Run: `npm test -- tests/sources/churchill.test.ts tests/sources/st-edmunds.test.ts`
 
 Expected: FAIL because current adapters return the v1 model.
 
-- [ ] **Step 3: Convert each adapter through a profile-backed base day**
+- [x] **Step 3: Convert each adapter through a profile-backed base day**
 
 Construct `const day = unknownDiningDay(collegeById("churchill"), date, fetchedAt, "live")`, then overlay only parsed meals and notices. Set `coverage: "menu"` only when dated menu content was confidently parsed; otherwise keep `schedule` or `link-only`. Convert every menu value to the array union, attach evidence-bearing source links, and keep meal restrictions separate from notes.
 
-- [ ] **Step 4: Preserve parser-drift safety**
+- [x] **Step 4: Preserve parser-drift safety**
 
 If an expected recurring timetable structure is wholly unrecognized, return unknown meal states with a warning; do not turn all meals closed. St Edmund's date-only paragraphs must bind following service paragraphs until the next dated heading, without leaking the notice to another date.
 
-- [ ] **Step 5: Run adapters, full source tests, and type checking**
+- [x] **Step 5: Run adapters, full source tests, and type checking**
 
 Run: `npm test -- tests/sources && npm run typecheck`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit the adapted direct sources**
+- [x] **Step 6: Commit the adapted direct sources**
 
 ```bash
 git add src/sources tests/sources tests/fixtures

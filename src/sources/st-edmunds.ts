@@ -1,5 +1,6 @@
 import { addIsoDays, weekdayForIso } from "../domain/dates";
-import { closedMeal, createUnknownDiningDay, unknownMeal } from "../domain/meals";
+import { collegeById } from "../domain/catalog";
+import { unknownDiningDay } from "../domain/fallback-day";
 import {
   MEAL_TYPES,
   type Availability,
@@ -12,7 +13,7 @@ import {
 } from "../domain/types";
 import { htmlLines, normalizeWhitespace, type WordPressPage, type WordPressPost } from "./wordpress";
 
-const ST_EDMUNDS_NAME = "St Edmund's College";
+const ST_EDMUNDS = collegeById("st-edmunds");
 const WEEKDAY_BY_NAME: Record<string, number> = {
   monday: 1,
   tuesday: 2,
@@ -313,23 +314,23 @@ function serviceOverrides(post: WordPressPost, weekStart: IsoDate): ServiceOverr
 }
 
 function sourceLinks(cateringPage: WordPressPage, weeklyPost: WordPressPost | null): SourceLink[] {
-  const links: SourceLink[] = [{ label: "St Edmund's catering information", url: cateringPage.link }];
+  const links: SourceLink[] = [{ label: "St Edmund's catering information", url: cateringPage.link, evidence: "official-college" }];
   const document = new DOMParser().parseFromString(cateringPage.content.rendered, "text/html");
   for (const anchor of document.querySelectorAll<HTMLAnchorElement>("a[href]")) {
     const label = normalizeWhitespace(anchor.textContent ?? "");
-    if (/^https?:\/\//i.test(anchor.href) && label && !links.some((link) => link.url === anchor.href)) {
-      links.push({ label, url: anchor.href });
+    if (/^https:\/\//i.test(anchor.href) && label && !links.some((link) => link.url === anchor.href)) {
+      links.push({ label, url: anchor.href, evidence: "official-college" });
     }
   }
   if (weeklyPost !== null && !links.some((link) => link.url === weeklyPost.link)) {
-    links.push({ label: "St Edmund's weekly catering menu", url: weeklyPost.link });
+    links.push({ label: "St Edmund's weekly catering menu", url: weeklyPost.link, evidence: "official-college" });
   }
   return links;
 }
 
-function menuPdfs(post: WordPressPost): Partial<Record<"lunch" | "dinner", MealRecord["menu"]>> {
+function menuPdfs(post: WordPressPost): Partial<Record<"lunch" | "dinner", MenuContent>> {
   const document = new DOMParser().parseFromString(post.content.rendered, "text/html");
-  const menus: Partial<Record<"lunch" | "dinner", MealRecord["menu"]>> = {};
+  const menus: Partial<Record<"lunch" | "dinner", MenuContent>> = {};
   for (const anchor of document.querySelectorAll<HTMLAnchorElement>("a[href]")) {
     const label = normalizeWhitespace(anchor.textContent ?? "");
     const meal = mealFrom(label);
@@ -411,8 +412,20 @@ function weekdayNumber(selectedDate: IsoDate): number {
   return WEEKDAY_BY_NAME[weekday] ?? 0;
 }
 
-function scheduledMeal(type: MealType, time: string, links: SourceLink[]): MealRecord {
-  return { ...unknownMeal(type), availability: "available", time, sourceLinks: links };
+function missingMeal(type: MealType, availability: "closed" | "unknown", links: SourceLink[]): MealRecord<MenuContent[]> {
+  return {
+    type,
+    availability,
+    time: availability === "closed" ? "Closed" : "Time not published",
+    menu: [{ kind: "message", message: availability === "closed" ? "Service closed" : "Menu not published" }],
+    notes: [],
+    restrictions: [],
+    sourceLinks: links
+  };
+}
+
+function scheduledMeal(type: MealType, time: string, links: SourceLink[]): MealRecord<MenuContent[]> {
+  return { ...missingMeal(type, "unknown", links), availability: "available", time };
 }
 
 export function parseStEdmundsDay(
@@ -420,17 +433,11 @@ export function parseStEdmundsDay(
   cateringPage: WordPressPage,
   selectedDate: IsoDate,
   fetchedAt: string
-): DiningDay<MenuContent> {
+): DiningDay<MenuContent[]> {
   const schedule = parseStEdmundsSchedule(cateringPage);
   const weekly = matchingWeeklyPost(posts, selectedDate);
   const links = sourceLinks(cateringPage, weekly?.post ?? null);
-  const day = createUnknownDiningDay({
-    college: "st-edmunds",
-    collegeName: ST_EDMUNDS_NAME,
-    date: selectedDate,
-    sourceLinks: links,
-    fetchedAt
-  });
+  const day = unknownDiningDay({ ...ST_EDMUNDS, sources: links }, selectedDate, fetchedAt, "live");
   const weekday = weekdayNumber(selectedDate);
   const regularEntries = schedule.entries.filter((entry) => entry.weekdays.includes(weekday));
 
@@ -438,9 +445,9 @@ export function parseStEdmundsDay(
     const meals = { ...day.meals };
     for (const entry of regularEntries) {
       meals[entry.meal] = {
-        ...unknownMeal(entry.meal),
+        ...missingMeal(entry.meal, "unknown", links),
         time: `Normally ${entry.time}`,
-        menu: { kind: "message", message: "Menu not published for this date" },
+        menu: [{ kind: "message", message: "Menu not published for this date" }],
         sourceLinks: links
       };
     }
@@ -448,13 +455,14 @@ export function parseStEdmundsDay(
       ...day,
       meals,
       sourceModifiedAt: cateringPage.modified,
-      notices: ["Recurring timetable only; no matching weekly menu is published for this date."]
+      notices: ["Recurring timetable only; no matching weekly menu is published for this date."],
+      coverage: "schedule"
     };
   }
 
-  const meals = {} as Record<MealType, MealRecord>;
+  const meals = {} as Record<MealType, MealRecord<MenuContent[]>>;
   for (const type of MEAL_TYPES) {
-    meals[type] = closedMeal(type);
+    meals[type] = missingMeal(type, "closed", links);
   }
   for (const entry of regularEntries) {
     meals[entry.meal] = scheduledMeal(entry.meal, entry.time, links);
@@ -463,7 +471,7 @@ export function parseStEdmundsDay(
   const menus = menuPdfs(weekly.post);
   for (const type of ["lunch", "dinner"] as const) {
     if (menus[type] !== undefined && meals[type].availability === "available") {
-      meals[type] = { ...meals[type], menu: menus[type] };
+      meals[type] = { ...meals[type], menu: [menus[type]] };
     }
   }
 
@@ -473,7 +481,7 @@ export function parseStEdmundsDay(
     }
     const prior = meals[override.meal];
     meals[override.meal] = override.availability === "closed"
-      ? { ...closedMeal(override.meal), notes: [override.note], sourceLinks: links }
+      ? { ...missingMeal(override.meal, "closed", links), notes: [override.note] }
       : {
           ...(prior.availability === "closed" ? scheduledMeal(override.meal, override.time ?? "Time not published", links) : prior),
           availability: "available",
@@ -487,6 +495,7 @@ export function parseStEdmundsDay(
     ...day,
     meals,
     notices: weeklyNotices(weekly.post, weekly.weekStart, selectedDate),
-    sourceModifiedAt: weekly.post.modified
+    sourceModifiedAt: weekly.post.modified,
+    coverage: Object.values(menus).length > 0 ? "menu" : "schedule"
   };
 }

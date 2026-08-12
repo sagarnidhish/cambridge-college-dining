@@ -15,10 +15,17 @@ describe("parseStEdmundsDay", () => {
       "2026-08-11",
       "2026-08-11T21:35:12.000Z"
     );
+    expect(day).toMatchObject({
+      college: "st-edmunds",
+      freshness: "live",
+      coverage: "menu",
+      access: { classification: "unknown" },
+      location: { diningArea: "Dining Hall" }
+    });
     expect(day.meals.breakfast.availability).toBe("closed");
     expect(day.meals.lunch.time).toBe("12:30–13:30");
-    expect(day.meals.lunch.menu).toMatchObject({ kind: "pdf", label: "Open official lunch menu PDF" });
-    expect(day.meals.dinner.menu).toMatchObject({ kind: "pdf", label: "Open official dinner menu PDF" });
+    expect(day.meals.lunch.menu[0]).toMatchObject({ kind: "pdf", label: "Open official lunch menu PDF" });
+    expect(day.meals.dinner.menu[0]).toMatchObject({ kind: "pdf", label: "Open official dinner menu PDF" });
   });
 
   it("applies a dated timing exception and keeps its note visible", () => {
@@ -181,7 +188,7 @@ describe("parseStEdmundsDay", () => {
     );
     expect(day.meals.lunch.availability).toBe("unknown");
     expect(day.meals.lunch.time).toBe("Normally 12:30–13:30");
-    expect(day.meals.lunch.menu).toEqual({ kind: "message", message: "Menu not published for this date" });
+    expect(day.meals.lunch.menu).toEqual([{ kind: "message", message: "Menu not published for this date" }]);
     expect(day.notices).toContain("Recurring timetable only; no matching weekly menu is published for this date.");
   });
 
@@ -213,7 +220,7 @@ describe("parseStEdmundsDay", () => {
     const day = parseStEdmundsDay([post], ST_EDMUNDS_CATERING_FIXTURE, "2026-08-16", "2026-08-11T21:35:12.000Z");
 
     expect(day.meals.dinner).toMatchObject({ availability: "available", time: "18:00–19:00" });
-    expect(day.meals.dinner.menu).toEqual({ kind: "message", message: "Menu not published" });
+    expect(day.meals.dinner.menu).toEqual([{ kind: "message", message: "Menu not published" }]);
   });
 
   it("applies January exceptions from a week commencing in December", () => {
@@ -263,7 +270,7 @@ describe("parseStEdmundsDay", () => {
       "2026-08-11T21:35:12.000Z"
     );
 
-    expect(day.meals.lunch.menu).toMatchObject({ kind: "pdf", url: "https://www.st-edmunds.cam.ac.uk/wp-content/uploads/2026/08/newer-lunch.pdf" });
+    expect(day.meals.lunch.menu[0]).toMatchObject({ kind: "pdf", url: "https://www.st-edmunds.cam.ac.uk/wp-content/uploads/2026/08/newer-lunch.pdf" });
     expect(day.sourceModifiedAt).toBe("2026-08-11T12:00:00");
   });
 
@@ -285,12 +292,12 @@ describe("parseStEdmundsDay", () => {
     expect(day.meals.lunch).toMatchObject({
       availability: "available",
       time: "12:30–13:30",
-      menu: { kind: "pdf", url: "https://www.st-edmunds.cam.ac.uk/wp-content/uploads/2026/08/live-week-lunch.pdf" }
+      menu: [{ kind: "pdf", url: "https://www.st-edmunds.cam.ac.uk/wp-content/uploads/2026/08/live-week-lunch.pdf" }]
     });
     expect(day.meals.dinner).toMatchObject({
       availability: "available",
       time: "18:30–19:45",
-      menu: { kind: "pdf", url: "https://www.st-edmunds.cam.ac.uk/wp-content/uploads/2026/08/live-week-dinner.pdf" }
+      menu: [{ kind: "pdf", url: "https://www.st-edmunds.cam.ac.uk/wp-content/uploads/2026/08/live-week-dinner.pdf" }]
     });
 
     const exceptionDay = parseStEdmundsDay(

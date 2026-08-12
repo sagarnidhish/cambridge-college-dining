@@ -71,7 +71,7 @@ describe("renderDashboard", () => {
     expect(dinnerLink?.parentElement?.tagName).not.toBe("OBJECT");
     expect(root.textContent).toContain("Availability: Closed");
     expect(root.textContent).toContain("Availability: Unknown");
-    expect(root.textContent).toContain("Menu not published");
+    expect(root.textContent).toContain("Menu not publicly confirmed");
 
     const externalLinks = [...root.querySelectorAll<HTMLAnchorElement>('a[target="_blank"]')];
     expect(externalLinks.every((link) => link.rel.includes("noopener") && link.rel.includes("noreferrer"))).toBe(true);

@@ -1,9 +1,10 @@
 import { addIsoDays, weekdayForIso } from "../domain/dates";
-import { closedMeal, createUnknownDiningDay, unknownMeal } from "../domain/meals";
+import { collegeById } from "../domain/catalog";
+import { unknownDiningDay } from "../domain/fallback-day";
 import { MEAL_TYPES, type DiningDay, type IsoDate, type MealRecord, type MealType, type MenuContent, type SourceLink } from "../domain/types";
 import { htmlLines, normalizeWhitespace, type WordPressPage } from "./wordpress";
 
-const CHURCHILL_NAME = "Churchill College";
+const CHURCHILL = collegeById("churchill");
 const WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const MONTH_INDEX: Record<string, number> = {
   jan: 0,
@@ -91,21 +92,28 @@ function tableDate(firstCell: HTMLTableCellElement, weekStart: IsoDate): IsoDate
   return matches.length === 1 ? matches[0] ?? null : null;
 }
 
-function menuFrom(cell: HTMLTableCellElement): MealRecord["menu"] {
+function menuFrom(cell: HTMLTableCellElement): MenuContent[] {
   const items = htmlLines(cell)
     .map((line) => line.replace(/^\*\s*/, "").replace(/\u2019/g, "'"))
     .filter(Boolean);
 
-  return items.length === 0 ? { kind: "message", message: "Menu not published" } : { kind: "items", items };
+  return items.length === 0 ? [{ kind: "message", message: "Menu not published" }] : [{ kind: "items", items }];
 }
 
-function scheduledMeal(type: MealType, time: string, sourceLinks: SourceLink[]): MealRecord {
+function missingMeal(type: MealType, availability: "closed" | "unknown", links: SourceLink[]): MealRecord<MenuContent[]> {
   return {
-    ...unknownMeal(type),
-    availability: "available",
-    time,
-    sourceLinks
+    type,
+    availability,
+    time: availability === "closed" ? "Closed" : "Time not published",
+    menu: [{ kind: "message", message: availability === "closed" ? "Service closed" : "Menu not publicly confirmed" }],
+    notes: [],
+    restrictions: [],
+    sourceLinks: links
   };
+}
+
+function scheduledMeal(type: MealType, time: string, links: SourceLink[]): MealRecord<MenuContent[]> {
+  return { ...missingMeal(type, "unknown", links), availability: "available", time };
 }
 
 function publishedNotices(document: Document): string[] {
@@ -114,15 +122,9 @@ function publishedNotices(document: Document): string[] {
     .filter((line) => /^Please note:/i.test(line));
 }
 
-export function parseChurchillDay(page: WordPressPage, selectedDate: IsoDate, fetchedAt: string): DiningDay<MenuContent> {
-  const sourceLinks = [{ label: "Churchill lunch and dinner menu", url: page.link }];
-  const unknownDay = createUnknownDiningDay({
-    college: "churchill",
-    collegeName: CHURCHILL_NAME,
-    date: selectedDate,
-    sourceLinks,
-    fetchedAt
-  });
+export function parseChurchillDay(page: WordPressPage, selectedDate: IsoDate, fetchedAt: string): DiningDay<MenuContent[]> {
+  const sourceLinks = CHURCHILL.sources.map((source) => ({ ...source, url: page.link }));
+  const unknownDay = unknownDiningDay({ ...CHURCHILL, sources: sourceLinks }, selectedDate, fetchedAt, "live");
   const document = new DOMParser().parseFromString(page.content.rendered, "text/html");
   const weekStart = weekStartFrom(document);
   if (weekStart === null) {
@@ -140,9 +142,9 @@ export function parseChurchillDay(page: WordPressPage, selectedDate: IsoDate, fe
       continue;
     }
 
-    const meals = {} as Record<MealType, MealRecord>;
+    const meals = {} as Record<MealType, MealRecord<MenuContent[]>>;
     for (const type of MEAL_TYPES) {
-      meals[type] = closedMeal(type);
+      meals[type] = missingMeal(type, "closed", sourceLinks);
     }
 
     const scheduleRow = table.rows.item(1);
@@ -179,17 +181,11 @@ export function parseChurchillDay(page: WordPressPage, selectedDate: IsoDate, fe
     }
 
     return {
-      college: "churchill",
-      collegeName: CHURCHILL_NAME,
-      date: selectedDate,
-      weekday: weekdayForIso(selectedDate),
-      timeZone: "Europe/London",
+      ...unknownDay,
       meals,
       notices: publishedNotices(document),
-      sourceLinks,
       sourceModifiedAt: page.modified,
-      fetchedAt,
-      freshness: "live"
+      coverage: [meals.lunch, meals.dinner].some(({ menu }) => menu.some(({ kind }) => kind !== "message")) ? "menu" : "schedule"
     };
   }
 
