@@ -86,8 +86,12 @@ export function formatCambridgeTimestamp(value: Date | string): string {
 }
 
 export function termStatusFor(date: IsoDate): "Full Term" | "Outside Full Term" | "Term dates not confirmed" {
-  if (!SUPPORTED_ACADEMIC_PERIODS.some(([start, end]) => date >= start && date <= end)) {
-    return "Term dates not confirmed";
-  }
-  return FULL_TERMS.some(([start, end]) => date >= start && date <= end) ? "Full Term" : "Outside Full Term";
+  const applicability = fullTermApplicability(date);
+  if (applicability === "unsupported") return "Term dates not confirmed";
+  return applicability === "inside" ? "Full Term" : "Outside Full Term";
+}
+
+export function fullTermApplicability(date: IsoDate): "inside" | "outside" | "unsupported" {
+  if (!SUPPORTED_ACADEMIC_PERIODS.some(([start, end]) => date >= start && date <= end)) return "unsupported";
+  return FULL_TERMS.some(([start, end]) => date >= start && date <= end) ? "inside" : "outside";
 }

@@ -56,6 +56,13 @@ export interface SourceLink {
   asOf?: string;
 }
 
+export type ServiceWindow =
+  | { kind: "year-round"; source: SourceLink }
+  | { kind: "full-term-only"; source: SourceLink }
+  | { kind: "date-range"; validFrom: IsoDate; validThrough: IsoDate; source: SourceLink }
+  | { kind: "date-specific"; date: IsoDate; source: SourceLink }
+  | { kind: "unknown"; source?: SourceLink };
+
 export interface AccessGuidance {
   classification: AccessClass;
   summary: string;
@@ -82,6 +89,7 @@ export interface CollegeProfile {
   sources: SourceLink[];
   access: AccessGuidance;
   prices: PriceQuote[];
+  serviceWindows?: Partial<Record<MealType, ServiceWindow>>;
 }
 
 export interface MealRecord<TMenu extends MenuContent | MenuContent[] = MenuContent> {
@@ -92,6 +100,7 @@ export interface MealRecord<TMenu extends MenuContent | MenuContent[] = MenuCont
   notes: string[];
   restrictions?: string[];
   sourceLinks: SourceLink[];
+  serviceWindow?: ServiceWindow;
 }
 
 export interface DiningDay<TMenu extends MenuContent | MenuContent[] = MenuContent | MenuContent[]> {

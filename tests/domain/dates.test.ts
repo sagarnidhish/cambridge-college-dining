@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   addIsoDays,
+  fullTermApplicability,
   formatCambridgeTimestamp,
   isIsoDate,
   todayInCambridge,
@@ -29,6 +30,11 @@ describe("Cambridge dates", () => {
   });
 
   it("uses published Full Term boundaries without extrapolating", () => {
+    expect(fullTermApplicability("2026-10-06")).toBe("inside");
+    expect(fullTermApplicability("2026-12-04")).toBe("inside");
+    expect(fullTermApplicability("2026-10-05")).toBe("outside");
+    expect(fullTermApplicability("2026-12-05")).toBe("outside");
+    expect(fullTermApplicability("2030-10-08")).toBe("unsupported");
     expect(termStatusFor("2026-10-06")).toBe("Full Term");
     expect(termStatusFor("2026-12-04")).toBe("Full Term");
     expect(termStatusFor("2026-12-05")).toBe("Outside Full Term");
