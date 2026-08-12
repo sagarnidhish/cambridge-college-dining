@@ -45,7 +45,7 @@ Evidence and claims remain intentionally separate. “Official University” is 
 ## Verification record
 
 - Clean-install gate: `npm ci` installed 109 packages successfully, followed by a fresh full collection of all 27 scheduled primaries.
-- Unit/integration gate: 23 files and 105 tests passed against the collected release snapshot.
+- Unit/integration gate: 23 files and 107 tests passed against the collected release snapshot, including native-dialog and collector-recovery regressions.
 - Production build: Vite build passed; built snapshot validated with exactly 27 scheduled records.
 - Direct live smoke: Churchill, Darwin, Downing, and St Edmund's passed payload-structure and browser-CORS checks.
 - Scheduled collection: bounded full run resolved 27 of 27 corrected primary links and wrote a schema-valid temporary snapshot.
