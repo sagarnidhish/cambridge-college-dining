@@ -73,4 +73,27 @@ describe("college detail dialog", () => {
     expect(close).toHaveBeenCalledOnce();
     root.remove();
   });
+
+  it("upgrades a connected fallback dialog to a native modal when supported", async () => {
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, "showModal");
+    Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+      configurable: true,
+      value(this: HTMLDialogElement) {
+        this.open = true;
+        this.dataset.nativeModal = "true";
+      }
+    });
+    const root = document.createElement("div");
+    document.body.append(root);
+    try {
+      const dialog = appendDetailDialog(root, state(), "2026-08-12", vi.fn());
+      await Promise.resolve();
+      expect(dialog.dataset.nativeModal).toBe("true");
+      expect(dialog.open).toBe(true);
+    } finally {
+      root.remove();
+      if (descriptor === undefined) delete (HTMLDialogElement.prototype as Partial<HTMLDialogElement>).showModal;
+      else Object.defineProperty(HTMLDialogElement.prototype, "showModal", descriptor);
+    }
+  });
 });

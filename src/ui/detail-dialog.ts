@@ -251,5 +251,14 @@ export function appendDetailDialog(
     }
   });
   parent.append(dialog);
+  queueMicrotask(() => {
+    if (!dialog.isConnected || typeof dialog.showModal !== "function") return;
+    try {
+      dialog.open = false;
+      dialog.showModal();
+    } catch {
+      dialog.open = true;
+    }
+  });
   return dialog;
 }
