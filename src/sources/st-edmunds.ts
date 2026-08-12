@@ -424,8 +424,15 @@ function missingMeal(type: MealType, availability: "closed" | "unknown", links: 
   };
 }
 
-function scheduledMeal(type: MealType, time: string, links: SourceLink[]): MealRecord<MenuContent[]> {
-  return { ...missingMeal(type, "unknown", links), availability: "available", time };
+function scheduledMeal(type: MealType, time: string, links: SourceLink[], selectedDate: IsoDate): MealRecord<MenuContent[]> {
+  const source = links.at(-1);
+  if (source === undefined) throw new Error("St Edmund's weekly service is missing its official source");
+  return {
+    ...missingMeal(type, "unknown", links),
+    availability: "available",
+    time,
+    serviceWindow: { kind: "date-specific", date: selectedDate, source }
+  };
 }
 
 export function parseStEdmundsDay(
@@ -465,7 +472,7 @@ export function parseStEdmundsDay(
     meals[type] = missingMeal(type, "closed", links);
   }
   for (const entry of regularEntries) {
-    meals[entry.meal] = scheduledMeal(entry.meal, entry.time, links);
+    meals[entry.meal] = scheduledMeal(entry.meal, entry.time, links, selectedDate);
   }
 
   const menus = menuPdfs(weekly.post);
@@ -483,7 +490,7 @@ export function parseStEdmundsDay(
     meals[override.meal] = override.availability === "closed"
       ? { ...missingMeal(override.meal, "closed", links), notes: [override.note] }
       : {
-          ...(prior.availability === "closed" ? scheduledMeal(override.meal, override.time ?? "Time not published", links) : prior),
+          ...(prior.availability === "closed" ? scheduledMeal(override.meal, override.time ?? "Time not published", links, selectedDate) : prior),
           availability: "available",
           time: override.time ?? prior.time,
           notes: [override.note],

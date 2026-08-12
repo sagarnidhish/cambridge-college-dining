@@ -53,4 +53,40 @@ describe("scheduled snapshot normalization", () => {
     const day = scheduledDayFor(parseScheduledSnapshot(input), collegeById("girton"), "2026-08-12");
     expect(day.meals.lunch.availability).toBe("unknown");
   });
+
+  it("applies authored Full Term weekday hours to the selected day", () => {
+    const snapshot = parseScheduledSnapshot(scheduledSnapshotFixture());
+    const weekday = scheduledDayFor(snapshot, collegeById("robinson"), "2026-10-07");
+    const weekend = scheduledDayFor(snapshot, collegeById("robinson"), "2026-10-10");
+
+    expect(weekday.coverage).toBe("schedule");
+    expect(weekday.meals.lunch).toMatchObject({
+      availability: "available",
+      time: "12:20–13:40",
+      serviceWindow: { kind: "full-term-only" }
+    });
+    expect(weekday.meals.dinner).toMatchObject({ availability: "available", time: "18:00–19:15" });
+    expect(weekday.meals.brunch.availability).toBe("unknown");
+    expect(weekend.meals.brunch).toMatchObject({ availability: "available", time: "12:00–13:30" });
+    expect(weekend.meals.lunch.availability).toBe("unknown");
+  });
+
+  it("does not promote authored Full Term hours outside Full Term", () => {
+    const snapshot = parseScheduledSnapshot(scheduledSnapshotFixture());
+    const day = scheduledDayFor(snapshot, collegeById("robinson"), "2026-08-12");
+
+    expect(day.coverage).toBe("link-only");
+    expect(day.meals.lunch.availability).toBe("unknown");
+    expect(day.meals.dinner.availability).toBe("unknown");
+  });
+
+  it("uses documented Christ's weekend service patterns without implying access", () => {
+    const snapshot = parseScheduledSnapshot(scheduledSnapshotFixture());
+    const day = scheduledDayFor(snapshot, collegeById("christs"), "2026-10-10");
+
+    expect(day.meals.breakfast.availability).toBe("unknown");
+    expect(day.meals.brunch).toMatchObject({ availability: "available", time: "10:30–12:30" });
+    expect(day.meals.dinner).toMatchObject({ availability: "available", time: "17:50–19:00" });
+    expect(day.access?.classification).toBe("unknown");
+  });
 });

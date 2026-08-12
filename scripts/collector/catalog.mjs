@@ -18,7 +18,7 @@ export const SCHEDULED_SOURCES = [
   ["pembroke", "Pembroke College", "https://www.pem.cam.ac.uk/college/catering/information-students/servery-menu"],
   ["peterhouse", "Peterhouse", "https://www.undergraduate.study.cam.ac.uk/colleges/peterhouse"],
   ["queens", "Queens' College", "https://www.queens.cam.ac.uk/life-at-queens/catering/dining-hall/weekly-menu/"],
-  ["robinson", "Robinson College", "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu"],
+  ["robinson", "Robinson College", "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu/opening-hours"],
   ["selwyn", "Selwyn College", "https://www.sel.cam.ac.uk/current-members/hall-menu"],
   ["sidney-sussex", "Sidney Sussex College", "https://sscsu.org.uk/hall"],
   ["st-catharines", "St Catharine's College", "https://mcr.caths.cam.ac.uk/current-students/hall-times"],

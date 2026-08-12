@@ -14,7 +14,11 @@ describe("parseChurchillDay", () => {
       access: { classification: "unhosted-cambridge" },
       location: { diningArea: "Dining Hall" }
     });
-    expect(day.meals.breakfast).toMatchObject({ availability: "available", time: "07:30–09:30" });
+    expect(day.meals.breakfast).toMatchObject({
+      availability: "available",
+      time: "07:30–09:30",
+      serviceWindow: { kind: "date-specific", date: "2026-08-11" }
+    });
     expect(day.meals.lunch.menu[0]).toMatchObject({ kind: "items" });
     expect(day.meals.lunch.menu[0]?.kind === "items" && day.meals.lunch.menu[0].items).toContain(
       "Today's Special: Churchill Trattoria"

@@ -174,7 +174,11 @@ describe("parseStEdmundsDay", () => {
       "2026-08-15",
       "2026-08-11T21:35:12.000Z"
     );
-    expect(day.meals.brunch).toMatchObject({ availability: "available", time: "11:00–12:30" });
+    expect(day.meals.brunch).toMatchObject({
+      availability: "available",
+      time: "11:00–12:30",
+      serviceWindow: { kind: "date-specific", date: "2026-08-15" }
+    });
     expect(day.meals.lunch.availability).toBe("closed");
     expect(day.meals.dinner.availability).toBe("closed");
   });

@@ -112,8 +112,15 @@ function missingMeal(type: MealType, availability: "closed" | "unknown", links: 
   };
 }
 
-function scheduledMeal(type: MealType, time: string, links: SourceLink[]): MealRecord<MenuContent[]> {
-  return { ...missingMeal(type, "unknown", links), availability: "available", time };
+function scheduledMeal(type: MealType, time: string, links: SourceLink[], selectedDate: IsoDate): MealRecord<MenuContent[]> {
+  const source = links[0];
+  if (source === undefined) throw new Error("Churchill timetable is missing its official source");
+  return {
+    ...missingMeal(type, "unknown", links),
+    availability: "available",
+    time,
+    serviceWindow: { kind: "date-specific", date: selectedDate, source }
+  };
 }
 
 function publishedNotices(document: Document): string[] {
@@ -168,7 +175,7 @@ export function parseChurchillDay(page: WordPressPage, selectedDate: IsoDate, fe
           throw new Error("Churchill timetable is incomplete");
         }
 
-        meals[type] = scheduledMeal(type, `${start}–${end}`, sourceLinks);
+        meals[type] = scheduledMeal(type, `${start}–${end}`, sourceLinks, selectedDate);
     }
 
     const lunchCell = scheduleRow?.cells.item(1);

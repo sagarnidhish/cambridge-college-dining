@@ -13,7 +13,7 @@ describe("catalog evidence validation", () => {
       payment: expect.stringContaining("card")
     });
     expect(collegeById("robinson").access).toMatchObject({
-      classification: "unhosted-cambridge",
+      classification: "guest-required",
       payment: expect.stringMatching(/credit|University Card/i)
     });
     expect(collegeById("downing").access.classification).toBe("unknown");
@@ -47,5 +47,23 @@ describe("catalog evidence validation", () => {
     expect(collegeById("queens").access.classification).toBe("guest-required");
     expect(collegeById("pembroke").access.classification).toBe("guest-required");
     expect(collegeById("st-johns").access.classification).toBe("unknown");
+  });
+
+  it("rejects unusable authored recurring-service evidence", () => {
+    const invalid = {
+      ...collegeById("robinson"),
+      recurringServices: [{
+        type: "lunch" as const,
+        weekdays: [],
+        time: "",
+        serviceWindow: { kind: "unknown" as const }
+      }]
+    };
+
+    expect(validateCollegeProfiles([invalid])).toEqual(expect.arrayContaining([
+      "robinson: lunch recurring service has no weekday",
+      "robinson: lunch recurring service has no time",
+      "robinson: lunch recurring service has no HTTPS source"
+    ]));
   });
 });
