@@ -33,6 +33,7 @@ export interface TableRowModel {
   id: CollegeId;
   name: string;
   diningArea: string;
+  mapQuery: string;
   status: CollegeViewState["status"];
   services: string;
   next: string;
@@ -111,6 +112,7 @@ function readyRow(state: Extract<CollegeViewState, { status: "ready" }>): TableR
     id: day.college,
     name: day.collegeName,
     diningArea: day.location?.diningArea ?? "Dining area not published",
+    mapQuery: day.location?.mapQuery ?? `${day.collegeName}, Cambridge, UK`,
     status: "ready",
     services: servicesToday(day),
     next: next.time === "" ? next.label : `${next.label}, ${next.time}`,
@@ -132,6 +134,7 @@ function unavailableRow(profile: (typeof COLLEGES)[number], state: CollegeViewSt
     id: profile.id,
     name: profile.name,
     diningArea: profile.diningArea,
+    mapQuery: profile.mapQuery,
     status,
     services: status === "loading" ? "Loading…" : "Unavailable",
     next: status === "loading" ? "Loading…" : "Unavailable",

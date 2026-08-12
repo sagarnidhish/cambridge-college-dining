@@ -97,7 +97,7 @@ button {
 button:hover { background: #174f79; }
 
 .date-controls,
-.directory-controls {
+.directory-filter-disclosure {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
@@ -109,6 +109,9 @@ button:hover { background: #174f79; }
   background: var(--surface);
   box-shadow: 0 .1rem .35rem rgb(6 36 61 / 8%);
 }
+
+.directory-filter-disclosure > summary { cursor: pointer; color: var(--navy); font-weight: 800; }
+.directory-controls { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; margin-top: .75rem; }
 
 .date-controls label,
 .directory-controls > label { display: grid; flex: 1 1 16rem; gap: .25rem; font-weight: 750; }
@@ -170,7 +173,9 @@ button:hover { background: #174f79; }
 .college-table thead th[aria-sort="descending"] button::after { content: " ↓"; }
 .college-table tbody tr:nth-child(even) { background: #f4f7f8; }
 .college-table tbody tr:hover { background: var(--blue-soft); }
-.college-row-button { width: 100%; min-width: 9rem; text-align: left; }
+.college-row-actions { display: grid; gap: .45rem; min-width: 10rem; }
+.college-map-link { display: inline-block; }
+.college-row-button { justify-self: start; min-height: 2.25rem; padding: .3rem .6rem; font-size: .9rem; }
 .college-table tr[data-status="error"] td:nth-child(2) { color: var(--closed); font-weight: 750; }
 .college-table tr[data-status="loading"] td:nth-child(2) { color: var(--muted); font-weight: 750; }
 

@@ -47,6 +47,7 @@ describe("table row derivation", () => {
     expect(rows.map(({ name }) => name)).toEqual([...rows.map(({ name }) => name)].sort((a, b) => a.localeCompare(b, "en-GB")));
     expect(rows.find(({ id }) => id === "fitzwilliam")).toMatchObject({ status: "error", services: "Unavailable" });
     expect(rows.find(({ id }) => id === "jesus")).toMatchObject({ services: "Not confirmed", access: "Access unknown" });
+    expect(rows.find(({ id }) => id === "churchill")?.mapQuery).toBe("Churchill College Dining Hall, Cambridge, UK");
   });
 
   it("summarizes only affirmatively available services and parses their first time", () => {

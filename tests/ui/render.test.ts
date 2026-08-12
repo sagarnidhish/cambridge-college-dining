@@ -47,7 +47,7 @@ describe("directory rendering", () => {
       "College", "Services today", "Next meal/time", "Access", "Indicative price", "Freshness"
     ]);
     expect(root.querySelectorAll("tbody tr")).toHaveLength(31);
-    expect([...root.querySelectorAll<HTMLButtonElement>(".college-row-button")].map(({ textContent }) => textContent)).toEqual(COLLEGES.map(({ name }) => name));
+    expect([...root.querySelectorAll<HTMLAnchorElement>(".college-map-link")].map(({ textContent }) => textContent)).toEqual(COLLEGES.map(({ name }) => name));
   });
 
   it("places the date-specific eatability panel before the full directory controls", () => {
@@ -59,14 +59,31 @@ describe("directory rendering", () => {
     expect(panel!.compareDocumentPosition(controls!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("opens a college through a descriptive row button", () => {
+  it("uses the college name as a safe Maps link and a separate details action", () => {
     const root = document.createElement("main");
     const handlers = actions();
     renderDashboard(root, view(), handlers);
+    const map = root.querySelector<HTMLAnchorElement>('[data-map-link="churchill"]');
+    expect(map?.href).toContain("https://www.google.com/maps/search/?api=1&query=Churchill%20College%20Dining%20Hall%2C%20Cambridge%2C%20UK");
+    expect(map?.target).toBe("_blank");
+    expect(map?.rel).toBe("noopener noreferrer");
+    map?.click();
+    expect(handlers.openCollege).not.toHaveBeenCalled();
     const churchill = root.querySelector<HTMLButtonElement>('[data-college="churchill"]');
+    expect(churchill?.textContent).toBe("Details");
     expect(churchill?.getAttribute("aria-label")).toBe("Open Churchill College dining details for Wednesday, 12 August 2026");
     churchill?.click();
     expect(handlers.openCollege).toHaveBeenCalledWith("churchill");
+  });
+
+  it("keeps all directory filters in an open native disclosure", () => {
+    const root = document.createElement("main");
+    renderDashboard(root, view(), actions());
+    const disclosure = root.querySelector<HTMLDetailsElement>(".directory-filter-disclosure");
+    expect(disclosure?.open).toBe(true);
+    expect(disclosure?.querySelector("summary")?.textContent).toBe("Filter all 31 colleges");
+    expect(disclosure?.querySelector('input[type="search"]')).not.toBeNull();
+    expect(disclosure?.querySelectorAll('input[type="checkbox"]')).toHaveLength(4);
   });
 
   it("wires search, evidence filters, sorting, and Clear filters without changing the date", () => {

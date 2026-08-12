@@ -105,6 +105,10 @@ const FILTERS: ReadonlyArray<{ key: DashboardFilter; label: string }> = [
 ];
 
 function appendDirectoryControls(parent: HTMLElement, options: TableOptions, actions: DashboardActions): void {
+  const disclosure = element("details");
+  disclosure.className = "directory-filter-disclosure";
+  disclosure.open = true;
+  disclosure.append(element("summary", "Filter all 31 colleges"));
   const section = element("section");
   section.className = "directory-controls";
   section.setAttribute("aria-label", "Filter colleges");
@@ -130,7 +134,8 @@ function appendDirectoryControls(parent: HTMLElement, options: TableOptions, act
     fieldset.append(filterLabel);
   }
   section.append(searchLabel, fieldset);
-  parent.append(section);
+  disclosure.append(section);
+  parent.append(disclosure);
 }
 
 const COLUMNS: ReadonlyArray<{ key: TableSort; label: string; className?: string }> = [
@@ -192,14 +197,23 @@ function appendDirectoryTable(parent: HTMLElement, view: DashboardViewState, act
       row.dataset.status = rowModel.status;
       const collegeCell = element("th");
       collegeCell.scope = "row";
-      const open = element("button", rowModel.name);
+      const rowActions = element("div");
+      rowActions.className = "college-row-actions";
+      const map = element("a", rowModel.name);
+      map.className = "college-map-link";
+      map.dataset.mapLink = rowModel.id;
+      map.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(rowModel.mapQuery)}`;
+      map.target = "_blank";
+      map.rel = "noopener noreferrer";
+      const open = element("button", "Details");
       open.type = "button";
       open.className = "college-row-button";
       open.dataset.college = rowModel.id;
       open.dataset.focusKey = `college-${rowModel.id}`;
       open.setAttribute("aria-label", `Open ${rowModel.name} dining details for ${formattedDate(view.dashboard.selectedDate)}`);
       open.addEventListener("click", () => actions.openCollege(rowModel.id));
-      collegeCell.append(open);
+      rowActions.append(map, open);
+      collegeCell.append(rowActions);
       const services = element("td", rowModel.services);
       const sourceState = view.dashboard.colleges[rowModel.id];
       if (sourceState?.status === "error") {
