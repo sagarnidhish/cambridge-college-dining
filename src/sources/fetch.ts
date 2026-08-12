@@ -1,4 +1,5 @@
 import type { WordPressPage, WordPressPost } from "./wordpress";
+import { parseScheduledSnapshot, type ScheduledSnapshot } from "../snapshots/schema";
 
 export const CHURCHILL_API = "https://www.chu.cam.ac.uk/wp-json/wp/v2/pages/1305?_fields=id,modified,link,title,content";
 export const ST_EDMUNDS_POSTS_API = "https://my.st-edmunds.cam.ac.uk/wp-json/wp/v2/posts?categories=69&per_page=10&_fields=id,date,modified,link,title,content";
@@ -6,6 +7,7 @@ export const ST_EDMUNDS_CATERING_API = "https://my-cr.st-edmunds.cam.ac.uk/wp-js
 export const DARWIN_MENUS_API = "https://www.darwin.cam.ac.uk/wp-json/wp/v2/menus?per_page=20&_fields=id,modified,link,title";
 export const DOWNING_BASE_API = "https://kitchen.kafoodle.com/api/wba/v1/data/17260";
 export const downingSearchApi = (groupId: number): string => `${DOWNING_BASE_API}/search/${groupId}`;
+export const SCHEDULED_SNAPSHOT_URL = "./data/college-dining.json";
 
 export interface ChurchillSnapshot {
   page: WordPressPage;
@@ -158,4 +160,8 @@ export async function fetchDowningSnapshot(fetchImpl: typeof fetch): Promise<Dow
   const menu = await postJson(fetchImpl, downingSearchApi(group.id));
   if (!downingSearch(menu)) throw new Error("Downing returned an invalid menu response");
   return { base, menu };
+}
+
+export async function fetchScheduledSnapshot(fetchImpl: typeof fetch): Promise<ScheduledSnapshot> {
+  return parseScheduledSnapshot(await fetchJson(fetchImpl, SCHEDULED_SNAPSHOT_URL));
 }

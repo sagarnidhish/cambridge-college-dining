@@ -374,7 +374,7 @@ git commit -m "feat: add Darwin and Downing live dining"
 - Consumes: four direct fetch/parser pairs, `parseScheduledSnapshot`, `scheduledDayFor`, `COLLEGES`, and cache v2.
 - Produces: `createDashboardSession(deps)` whose `refresh(date)` and `selectDate(date)` return `DashboardState` containing every `CollegeId`.
 
-- [ ] **Step 1: Replace two-college tests with all-college and isolation tests**
+- [x] **Step 1: Replace two-college tests with all-college and isolation tests**
 
 ```ts
 it("returns exactly 31 states when one direct source rejects", async () => {
@@ -393,27 +393,27 @@ it("uses the exact-date cached day after a failed explicit refresh without rewri
 });
 ```
 
-- [ ] **Step 2: Run the session tests and confirm current hard-coding fails**
+- [x] **Step 2: Run the session tests and confirm current hard-coding fails**
 
 Run: `npm test -- tests/app/dashboard-session.test.ts`
 
 Expected: FAIL because only two state keys are returned.
 
-- [ ] **Step 3: Implement college-indexed refresh orchestration**
+- [x] **Step 3: Implement college-indexed refresh orchestration**
 
 Fetch the scheduled JSON once and the four direct sources independently with `Promise.allSettled`. Build the 31-key state from `COLLEGES`; normalize each result inside its own `try/catch`. On a failed current refresh, use exact-date cache or error. Retain successful raw direct snapshots only for `selectDate`; do not reuse them as a current-refresh success. Ignore late refresh generations.
 
-- [ ] **Step 4: Validate scheduled response before any record is used**
+- [x] **Step 4: Validate scheduled response before any record is used**
 
 If the scheduled JSON fails schema validation, serve per-college exact-date cache/error for all 27 scheduled entries while preserving direct results. A valid scheduled record is cached only after a complete `DiningDay` is normalized.
 
-- [ ] **Step 5: Run session, cache, source, and type suites**
+- [x] **Step 5: Run session, cache, source, and type suites**
 
 Run: `npm test -- tests/app tests/storage tests/sources && npm run typecheck`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit the session milestone**
+- [x] **Step 6: Commit the session milestone**
 
 ```bash
 git add src/app src/sources/fetch.ts tests/app
