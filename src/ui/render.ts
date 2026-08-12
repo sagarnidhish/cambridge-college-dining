@@ -2,6 +2,9 @@ import { weekdayForIso } from "../domain/dates";
 import type { CollegeId, DashboardState, DiningDay } from "../domain/types";
 import { tableRows, type TableOptions, type TableSort } from "./table-model";
 import { appendDetailDialog } from "./detail-dialog";
+import { appendMethodology } from "./methodology";
+import { appendPageCounter } from "./counter";
+import type { AppView } from "./query-state";
 
 export type DashboardFilter = "serving" | "unhosted" | "menuPublished" | "accessUnknown";
 
@@ -9,6 +12,27 @@ export interface DashboardViewState {
   dashboard: DashboardState;
   options: TableOptions;
   selectedCollege: CollegeId | null;
+  view: AppView;
+}
+
+function appendNavigation(parent: HTMLElement, current: AppView): void {
+  const navigation = element("nav");
+  navigation.className = "site-navigation";
+  navigation.setAttribute("aria-label", "Main navigation");
+  const directory = element("a", "College directory");
+  directory.setAttribute("href", "?view=directory");
+  const sources = element("a", "Sources and Methodology");
+  sources.setAttribute("href", "?view=sources");
+  (current === "directory" ? directory : sources).setAttribute("aria-current", "page");
+  navigation.append(directory, sources);
+  parent.append(navigation);
+}
+
+function latestScheduledTimestamp(dashboard: DashboardState): string | undefined {
+  return Object.values(dashboard.colleges)
+    .flatMap((state) => state.status === "ready" && state.day.freshness === "scheduled" ? [state.day.fetchedAt] : [])
+    .sort()
+    .at(-1);
 }
 
 export interface DashboardActions {
@@ -203,13 +227,23 @@ export function renderDashboard(root: HTMLElement, view: DashboardViewState, act
   dashboard.className = "dashboard";
   const directory = element("div");
   directory.className = "directory-content";
-  directory.append(element("h1", "Cambridge college dining"));
-  directory.append(element("p", "Compare published dining information across all 31 Cambridge colleges."));
-  appendDateControls(directory, view.dashboard.selectedDate, actions);
-  appendDirectoryControls(directory, view.options, actions);
-  appendDirectoryTable(directory, view, actions);
+  appendNavigation(directory, view.view);
+  if (view.view === "directory") {
+    directory.append(element("h1", "Cambridge college dining"));
+    directory.append(element("p", "Compare published dining information across all 31 Cambridge colleges."));
+    appendDateControls(directory, view.dashboard.selectedDate, actions);
+    appendDirectoryControls(directory, view.options, actions);
+    appendDirectoryTable(directory, view, actions);
+  } else {
+    const collectedAt = latestScheduledTimestamp(view.dashboard);
+    appendMethodology(directory, collectedAt === undefined ? {} : { collectedAt });
+  }
+  const footer = element("footer");
+  footer.append(element("p", "Always verify timings, access, prices, and restrictions on the linked source before travelling."));
+  appendPageCounter(footer);
+  directory.append(footer);
   dashboard.append(directory);
-  if (view.selectedCollege !== null) {
+  if (view.view === "directory" && view.selectedCollege !== null) {
     directory.inert = true;
     appendDetailDialog(dashboard, view.dashboard.colleges[view.selectedCollege], view.dashboard.selectedDate, actions.closeCollege);
   }

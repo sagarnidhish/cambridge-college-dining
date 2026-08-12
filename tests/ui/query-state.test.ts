@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { collegeFromLocation, setCollegeInHistory, urlWithCollege } from "../../src/ui/query-state";
+import { collegeFromLocation, setCollegeInHistory, urlWithCollege, urlWithView, viewFromLocation } from "../../src/ui/query-state";
 
 afterEach(() => history.replaceState({}, "", "/"));
 
@@ -28,5 +28,11 @@ describe("college query state", () => {
     setCollegeInHistory(null, "replace");
     expect(new URL(location.href).searchParams.get("college")).toBeNull();
     expect(new URL(location.href).searchParams.get("view")).toBe("directory");
+  });
+
+  it("accepts only the two canonical views and preserves the college selection", () => {
+    expect(viewFromLocation(new URL("https://example.test/?view=sources"))).toBe("sources");
+    expect(viewFromLocation(new URL("https://example.test/?view=unknown"))).toBe("directory");
+    expect(urlWithView(new URL("https://example.test/?college=churchill"), "sources").searchParams.get("college")).toBe("churchill");
   });
 });

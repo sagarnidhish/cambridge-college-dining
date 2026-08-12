@@ -4,7 +4,7 @@ import { addIsoDays, isIsoDate, todayInCambridge } from "../domain/dates";
 import type { CollegeId, DashboardState, IsoDate } from "../domain/types";
 import { DEFAULT_TABLE_OPTIONS, type TableOptions } from "./table-model";
 import { renderDashboard, type DashboardActions, type DashboardFilter } from "./render";
-import { collegeFromLocation, setCollegeInHistory } from "./query-state";
+import { collegeFromLocation, setCollegeInHistory, viewFromLocation, type AppView } from "./query-state";
 
 function loadingState(selectedDate: IsoDate): DashboardState {
   return {
@@ -26,12 +26,13 @@ export async function mountDashboard(
   let dashboard = loadingState(selectedDate);
   let options: TableOptions = { ...DEFAULT_TABLE_OPTIONS };
   let selectedCollege: CollegeId | null = collegeFromLocation(window.location);
+  let view: AppView = viewFromLocation(window.location);
   let lastSelectedCollege: CollegeId | null = selectedCollege;
   let refreshGeneration = 0;
 
   const render = (): void => {
-    renderDashboard(root, { dashboard, options, selectedCollege }, actions);
-    if (selectedCollege !== null) root.querySelector<HTMLButtonElement>('dialog button[name="close-details"]')?.focus();
+    renderDashboard(root, { dashboard, options, selectedCollege, view }, actions);
+    if (view === "directory" && selectedCollege !== null) root.querySelector<HTMLButtonElement>('dialog button[name="close-details"]')?.focus();
   };
 
   const selectDate = (date: IsoDate): void => {
@@ -91,6 +92,7 @@ export async function mountDashboard(
 
   window.addEventListener("popstate", () => {
     selectedCollege = collegeFromLocation(window.location);
+    view = viewFromLocation(window.location);
     if (selectedCollege !== null) lastSelectedCollege = selectedCollege;
     render();
   });

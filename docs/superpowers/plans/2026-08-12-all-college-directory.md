@@ -620,7 +620,7 @@ git commit -m "feat: add accessible college dining details"
 - Consumes: `COLLEGES`, snapshot collection metadata, and safe HTTPS source rendering.
 - Produces: a functional `?view=sources` methodology view, a non-blocking hits.sh counter, and responsive table/dialog presentation.
 
-- [ ] **Step 1: Write sources-view and counter-failure tests**
+- [x] **Step 1: Write sources-view and counter-failure tests**
 
 ```ts
 it("lists all 31 college source groups and all four evidence definitions", () => {
@@ -640,27 +640,27 @@ it("leaves the application usable when the page counter image fails", () => {
 });
 ```
 
-- [ ] **Step 2: Run methodology/counter tests and verify RED**
+- [x] **Step 2: Run methodology/counter tests and verify RED**
 
 Run: `npm test -- tests/ui/methodology.test.ts tests/ui/counter.test.ts`
 
 Expected: FAIL because the modules do not exist.
 
-- [ ] **Step 3: Implement the secondary view and counter isolation**
+- [x] **Step 3: Implement the secondary view and counter isolation**
 
 The methodology view lists catalog sources and evidence labels and explains live/scheduled/cached freshness, derived term dates, dated material, supplementary evidence, access/price change risk, and source verification. Navigation between directory and sources uses real links with `?view=sources` and `?view=directory`. The hits.sh image URL is HTTPS, is labelled `Page loads`, and replaces itself with `Page-load count unavailable` on error without touching application state.
 
-- [ ] **Step 4: Replace v1 card CSS with responsive table/drawer CSS**
+- [x] **Step 4: Replace v1 card CSS with responsive table/drawer CSS**
 
 Use visible focus rings, colour plus text/status labels, minimum 44px primary controls, sticky table header, horizontal overflow containment, desktop right-side dialog, and mobile full-viewport dialog. At `max-width: 720px`, hide only columns tagged `.optional-column`; college, services, and access remain visible. Respect `prefers-reduced-motion: reduce` and preserve readable content with CSS disabled.
 
-- [ ] **Step 5: Run UI tests, type checking, and build**
+- [x] **Step 5: Run UI tests, type checking, and build**
 
 Run: `npm test -- tests/ui && npm run typecheck && npm run build`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit presentation and methodology**
+- [x] **Step 6: Commit presentation and methodology**
 
 ```bash
 git add src/ui src/styles.css index.html tests/ui

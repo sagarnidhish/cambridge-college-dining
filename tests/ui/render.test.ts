@@ -34,7 +34,7 @@ function actions(): DashboardActions {
 }
 
 function view(overrides: Partial<DashboardViewState> = {}): DashboardViewState {
-  return { dashboard: dashboard(), options: { ...DEFAULT_TABLE_OPTIONS }, selectedCollege: null, ...overrides };
+  return { dashboard: dashboard(), options: { ...DEFAULT_TABLE_OPTIONS }, selectedCollege: null, view: "directory", ...overrides };
 }
 
 describe("directory rendering", () => {
@@ -101,5 +101,14 @@ describe("directory rendering", () => {
     renderDashboard(root, view({ selectedCollege: "churchill" }), actions());
     expect(root.querySelector("dialog")?.textContent).toContain("Churchill College");
     expect(root.querySelector<HTMLElement>(".directory-content")?.inert).toBe(true);
+  });
+
+  it("renders real directory and sources navigation and the secondary view", () => {
+    const root = document.createElement("main");
+    renderDashboard(root, view({ view: "sources" }), actions());
+    expect(root.querySelector('a[href="?view=directory"]')).not.toBeNull();
+    expect(root.querySelector('a[href="?view=sources"]')?.getAttribute("aria-current")).toBe("page");
+    expect(root.querySelectorAll("[data-source-college]")).toHaveLength(31);
+    expect(root.querySelector("table")).toBeNull();
   });
 });
