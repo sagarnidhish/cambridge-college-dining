@@ -318,7 +318,7 @@ git commit -m "refactor: enrich existing live dining adapters"
 - Consumes: `unknownDiningDay`, WordPress helpers, validated HTTPS URL helpers, Darwin pages 52/54, and Downing Kafoodle WBA JSON.
 - Produces: `fetchDarwinSnapshot(fetchImpl)`, `parseDarwinDay(snapshot, date, fetchedAt)`, `fetchDowningSnapshot(fetchImpl, date)`, and `parseDowningDay(snapshot, date, fetchedAt)`.
 
-- [ ] **Step 1: Capture minimal sanitized fixtures and write date-specific tests**
+- [x] **Step 1: Capture minimal sanitized fixtures and write date-specific tests**
 
 ```ts
 it("maps Darwin's dated lunch and dinner without treating headers as dishes", () => {
@@ -336,27 +336,27 @@ it("maps Downing meals, allergens, price, and official unhosted access", () => {
 });
 ```
 
-- [ ] **Step 2: Run both new suites and verify missing-module failures**
+- [x] **Step 2: Run both new suites and verify missing-module failures**
 
 Run: `npm test -- tests/sources/darwin.test.ts tests/sources/downing.test.ts`
 
 Expected: FAIL because the adapters do not exist.
 
-- [ ] **Step 3: Implement Darwin parsing with structural guards**
+- [x] **Step 3: Implement Darwin parsing with structural guards**
 
 Fetch the official REST representations with `cache: "no-store"`. Identify weekday/date sections, normalize Unicode times, strip tags through DOM parsing, and require at least one recognized meal heading plus non-empty dish content before setting `coverage: "menu"`. A changed page yields unknowns and `collectionWarning`, not closures.
 
-- [ ] **Step 4: Implement Downing Kafoodle parsing with structural guards**
+- [x] **Step 4: Implement Downing Kafoodle parsing with structural guards**
 
 Fetch the official public WBA base data, identify its group ID, POST the selected-date query payload, and map only recognized service/category/product records. Deduplicate allergens and dietary labels. Use the official catering page as access evidence; do not infer access merely from the API being public.
 
-- [ ] **Step 5: Run all direct adapter tests and type checking**
+- [x] **Step 5: Run all direct adapter tests and type checking**
 
 Run: `npm test -- tests/sources && npm run typecheck`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit the new live adapters**
+- [x] **Step 6: Commit the new live adapters**
 
 ```bash
 git add src/sources tests/sources tests/fixtures
