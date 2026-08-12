@@ -1,285 +1,305 @@
-# Cambridge College Dining Dashboard v2 Design
+# Cambridge College Dining Directory v2 Design
 
 ## Purpose
 
-Expand the existing public Cambridge College Dining Dashboard from Churchill College and St Edmund's College to nine colleges while making the selected-date view more compact and useful. The dashboard must help a Cambridge student answer three separate questions without overstating the available evidence:
+Expand the existing public Cambridge College Dining site from two colleges to all 31 colleges in the University of Cambridge's official College A–Z. The public landing page must make comparison quick: it opens directly to a compact table of all colleges for a selected date, and selecting a row opens complete dining details without leaving the table.
 
-1. Which colleges are serving food on the selected date?
-2. Which of those colleges are confirmed to admit an unhosted Cambridge student?
-3. What time, menu, price, access rule, and special notes have been published?
+The site answers three distinct questions without overstating its evidence:
 
-Version two covers Churchill, St Edmund's, Robinson, Christ's, Clare Hall, Clare, Corpus Christi, Darwin, and Downing. Every displayed fact must retain a visible path back to an official college source or an explicitly labelled supplementary student-body source. Missing information is shown as unknown or not published; it is never silently guessed.
+1. What dining service is published for this college on the selected date?
+2. Is an unhosted Cambridge student from another college officially confirmed to be allowed to use it?
+3. What times, menus, prices, notes, restrictions, and verification sources are available?
 
-The original two-college release remains available, unchanged, at <https://sagarnidhish.github.io/cambridge-college-dining_old/>. Version two is developed and deployed from the main `cambridge-college-dining` repository.
+Every college remains visible even when its current menu, access rule, or serving time is not public. Missing information is shown as unknown or not published; it is never silently guessed. The original two-college release remains unchanged at <https://sagarnidhish.github.io/cambridge-college-dining_old/>.
 
-## Agreed Scope
+## Scope
 
 Version two includes:
 
-- nine college dining cards for a user-selected date;
-- a compact summary of colleges confirmed available to an unhosted Cambridge student;
-- an embedded Google map and direct Google Maps links;
-- meal availability, times, menus, notes, restrictions, official links, and retrieval time;
-- access and payment guidance with evidence links;
-- indicative prices with audience, precision, source, and as-of date;
-- college-specific or University Full Term schedule rules where published;
-- a small page-load counter;
-- live browser retrieval where the official source supports it;
-- scheduled GitHub snapshot collection where browser retrieval is not reliable;
-- independent error states and exact-date browser cache fallbacks.
+- all 31 Cambridge colleges from the official College A–Z;
+- a public landing table shown immediately, with no login;
+- selected-date navigation, search, sorting, and evidence-aware filters;
+- an accessible detail drawer on desktop and full-screen dialog on mobile;
+- direct Google Maps links and one embedded map in the selected-college detail;
+- breakfast, brunch, lunch, and dinner availability, time, menu, notes, and restrictions;
+- term-date alignment where a service is term-only;
+- access, guest, and payment guidance with visible sources;
+- indicative prices with exact/approximate, audience, source, and as-of labels;
+- live browser retrieval where official endpoints support cross-origin requests;
+- daily GitHub Actions snapshots for other public pages, PDFs, images, and JavaScript menus;
+- explicit source quality and freshness labels;
+- independent errors and exact-date browser cache fallbacks;
+- a non-blocking page-load counter;
+- a Sources and Methodology page explaining provenance and limitations.
 
-The following ideas are deliberately deferred to later versions:
+The following remain separate future projects:
 
-- a separate cafe and bar guide;
-- reviews, Reddit-backed discussion, and review filters;
-- Cambridge authentication;
-- requests for another student to act as a dining guest host;
-- a general-purpose application server or database.
+- a cafe and bar directory;
+- reviews, Reddit-linked discussion, and review filters;
+- Cambridge/Raven authentication;
+- requests for another student to act as a dining guest host.
 
-The deferred features may receive reserved navigation or domain boundaries, but version two must not show non-functional controls for them.
+No inactive navigation or fake controls for those future projects appear in version two.
 
-## Source Inventory and Retrieval Class
+## College Inventory and Sources
 
-The dashboard uses the user-supplied official pages plus structured representations discovered from those sites. Each adapter owns its source URLs and records both the source publication time, when present, and the time the dashboard retrieved it.
+The canonical inventory is the [University of Cambridge College A–Z](https://www.cam.ac.uk/colleges-and-departments/college-a-z). Official college sources have the highest evidence priority. Official student-body sources may fill a gap only when labelled. A supplementary source is never presented as an official college statement.
 
-| College | Primary sources | Retrieval class | Menu representation |
-| --- | --- | --- | --- |
-| Churchill | [Dining page](https://www.chu.cam.ac.uk/about/campus/dining-at-college/lunch-and-dinner-menu/) and its WordPress REST page | Direct browser fetch | Structured daily items |
-| St Edmund's | [Weekly menu archive](https://my.st-edmunds.cam.ac.uk/category/menus/) and [catering timetable](https://my-cr.st-edmunds.cam.ac.uk/facilities/catering/) through WordPress REST | Direct browser fetch | Official lunch and dinner PDFs plus dated exceptions |
-| Robinson | [Dated Garden Restaurant menu](https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu?date=2026-08-12) and [food information](https://www.robinson.cam.ac.uk/prospective-students/student-life/food-and-drink) | Scheduled snapshot | Structured daily items and published meal deals |
-| Christ's | [Meals page](https://www.christs.cam.ac.uk/student-life/meals) | Scheduled snapshot | Published schedule and explicit current-menu-unavailable state; an official sample menu may be linked but never presented as current |
-| Clare Hall | [Dining page](https://www.clarehall.cam.ac.uk/dining/) and the college's published Microsoft Sway menu | Scheduled snapshot with browser rendering for Sway | Structured menu text when confidently extracted, otherwise official menu link |
-| Clare | [Dining and catering page](https://www.clare.cam.ac.uk/admissions-outreach/undergraduate-study/life-clare/dining-and-catering) plus an explicitly labelled supplementary student-body source where needed | Scheduled snapshot | Published schedule and current menu link or not-published state |
-| Corpus Christi | [Prospective-student food page](https://www.corpus.cam.ac.uk/undergraduate-study/living-corpus/food-and-dining), [current-student food page](https://www.corpus.cam.ac.uk/current-students/food-corpus), and [JCR catering page](https://www.jcr.corpus.cam.ac.uk/catering) | Scheduled snapshot | Official current menu image, linked and displayed without invented OCR text |
-| Darwin | [Dining page](https://www.darwin.cam.ac.uk/dine/) and [weekly menu](https://www.darwin.cam.ac.uk/dine/weekly-menu/) through WordPress REST | Direct browser fetch | Structured weekly items, prices, and allergens |
-| Downing | [Current-student catering page](https://www.dow.cam.ac.uk/current-students/catering), [accommodation catering page](https://www.dow.cam.ac.uk/undergraduate-study/undergraduate-accommodation/catering), and the official public Kafoodle data feed | Direct browser fetch | Structured daily items, prices, and allergens |
+| College | Primary dining sources | Initial retrieval level |
+| --- | --- | --- |
+| Christ's | [Meals](https://www.christs.cam.ac.uk/student-life/meals) | Daily snapshot; recurring schedule and explicit current-menu-unavailable state |
+| Churchill | [Dining](https://www.chu.cam.ac.uk/about/campus/dining-at-college/lunch-and-dinner-menu/) and WordPress REST | Direct live structured menu |
+| Clare | [Dining and catering](https://www.clare.cam.ac.uk/admissions-outreach/undergraduate-study/life-clare/dining-and-catering) | Daily snapshot; schedule and official links |
+| Clare Hall | [Dining](https://www.clarehall.cam.ac.uk/dining/) and the linked Microsoft Sway menu | Daily headless snapshot; structured menu when extraction is confident |
+| Corpus Christi | [Food and dining](https://www.corpus.cam.ac.uk/undergraduate-study/living-corpus/food-and-dining), [Food at Corpus](https://www.corpus.cam.ac.uk/current-students/food-corpus), and [JCR catering](https://www.jcr.corpus.cam.ac.uk/catering) | Daily snapshot; official menu image without invented OCR text |
+| Darwin | [Dine](https://www.darwin.cam.ac.uk/dine/) and [weekly menu](https://www.darwin.cam.ac.uk/dine/weekly-menu/) through WordPress REST | Direct live structured menu |
+| Downing | [Catering](https://www.dow.cam.ac.uk/current-students/catering), [student catering information](https://www.dow.cam.ac.uk/undergraduate-study/undergraduate-accommodation/catering), and official public Kafoodle data | Direct live structured menu |
+| Emmanuel | [Domestic Matters 2025–26](https://apps.emma.cam.ac.uk/college/documents/pdfs/DOMESTIC%20MATTERS%202025-26.pdf) | Daily link/schedule snapshot; dated document label mandatory |
+| Fitzwilliam | [Food and drink](https://www.fitz.cam.ac.uk/college-life/food-and-drink) | Daily snapshot; repair warning if official link moves |
+| Girton | [Dining and socialising](https://www.girton.cam.ac.uk/dining-and-socialising) | Daily schedule/price snapshot; weekly menu remains internal |
+| Gonville & Caius | [Accessibility and catering information](https://www.cai.cam.ac.uk/sites/default/files/accessibility_information.pdf) | Daily link/schedule snapshot; no public current menu initially |
+| Homerton | [Catering opening times](https://www.homerton.cam.ac.uk/sites/default/files/Catering%20Opening%20Times%20Term%20Time.pdf) | Daily PDF snapshot; schedule extraction |
+| Hughes Hall | [University college profile](https://www.undergraduate.study.cam.ac.uk/colleges/hughes-hall) | Daily University-source snapshot; no college menu initially found |
+| Jesus | [Cafeteria](https://www.jesus.cam.ac.uk/college/life-jesus/food-and-drink/cafeteria) and [cafeteria lunch menu](https://www.jesus.cam.ac.uk/college/life-jesus/food-and-drink/cafeteria-lunch-menu) | Daily link validation; structured collection only when ordinary permitted access is reliable |
+| King's | [Undergraduate student handbook](https://www.kings.cam.ac.uk/sites/default/files/documents/intranet/undergraduate-student-handbook-2024-25-final-copy.pdf) | Daily link/schedule snapshot; menus are emailed internally |
+| Lucy Cavendish | [College dining overview](https://www.lucy.cam.ac.uk/sites/default/files/inline-files/Welcome%20to%20Lucy%20Cavendish%20College%20and%20College%20Tour%20-%20Webinar%20Series.pdf) and [meal portal](https://services.lucy.cam.ac.uk/meal-epos/) | Daily link/schedule snapshot; portal content is not scraped behind login |
+| Magdalene | [Catering](https://www.magd.cam.ac.uk/study-magdalene/undergraduate-study/accommodation-and-food/catering) and [JCR catering](https://www.jcr.magd.cam.ac.uk/catering) | Daily schedule/price snapshot with source-level labels |
+| Murray Edwards | [College facilities](https://www.murrayedwards.cam.ac.uk/college-life/college-facilities) | Daily schedule snapshot; current menu link if published |
+| Newnham | [Buttery menus](https://newn.cam.ac.uk/weekly-and-daily-menus/) and [Food & Drink](https://newn.cam.ac.uk/student-life/societies-and-facilities/food-drink/) | Daily structured/PDF menu snapshot |
+| Pembroke | [Servery menu](https://www.pem.cam.ac.uk/college/catering/information-students/servery-menu) | Daily structured menu snapshot |
+| Peterhouse | [Postgraduate handbook](https://www.pet.cam.ac.uk/sites/default/files/inline-files/PG%20handbook%202024_2.pdf) and [Petmenu](https://petmenu.co.uk/) | Official schedule plus clearly labelled supplementary menu; never claim Petmenu is official |
+| Queens' | [Dining Hall](https://www.queens.cam.ac.uk/life-at-queens/catering/dining-hall/) and [weekly menu](https://www.queens.cam.ac.uk/life-at-queens/catering/dining-hall/weekly-menu/) | Daily structured menu/schedule snapshot |
+| Robinson | [Dated Garden Restaurant menu](https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu?date=2026-08-12) and [food and drink](https://www.robinson.cam.ac.uk/prospective-students/student-life/food-and-drink) | Daily rolling date-window snapshot |
+| Selwyn | [Hall menu](https://augbeta.sel.cam.ac.uk/current-members/hall-menu) | Daily dated-menu snapshot from an official college subdomain |
+| Sidney Sussex | [Students' Union Hall guide](https://sscsu.org.uk/hall) and official College documents | Daily student-body snapshot with evidence label |
+| St Catharine's | [MCR Hall times](https://mcr.caths.cam.ac.uk/current-students/hall-times) and official College documents | Daily student-body schedule snapshot with evidence label |
+| St Edmund's | [Menu archive](https://my.st-edmunds.cam.ac.uk/category/menus/) and [catering timetable](https://my-cr.st-edmunds.cam.ac.uk/facilities/catering/) through WordPress REST | Direct live schedule, PDF menu, and exception data |
+| St John's | [Food & Drink](https://www.joh.cam.ac.uk/live-and-study/food-and-drink) | Daily schedule snapshot; current menu link when published |
+| Trinity | [Student experience and catering](https://www.trin.cam.ac.uk/access/outreach-home/student-experiences-at-trinity/) and current College regulations | Daily schedule/link snapshot; no public current menu initially |
+| Trinity Hall | [Food and Drink](https://www.trinhall.cam.ac.uk/study-with-us/life-trinity-hall/food-and-drink/) | Daily schedule snapshot; daily menus remain internal |
+| Wolfson | [Food & Dining](https://www.wolfson.cam.ac.uk/college-life/food) and [Buttery menus](https://www.wolfson.cam.ac.uk/food/cafeteria-menus) | Daily structured menu, price, allergen, and schedule snapshot |
 
-Official college sources have the highest evidence priority. Official student-body sources, such as a JCR or UCS page, may fill a gap only when their status is displayed. Third-party discussion is outside the version-two data path.
+Each adapter records every source URL, evidence category, source publication time when present, and dashboard retrieval time. Dated handbooks and sample menus retain their dates and are never presented as current weekly menus.
 
-## Selected Architecture: GitHub-Only Hybrid
+## Architecture: GitHub-Only Hybrid
 
-The application remains a static TypeScript and Vite site deployed to GitHub Pages. It has no server, database, paid API, separately hosted proxy, or repository secret.
+The application remains a static TypeScript/Vite site on GitHub Pages. It has no application server, database, paid map API, separately hosted proxy, repository secret, or user authentication.
 
 ### Direct sources
 
-On page load and explicit refresh, the browser requests the supported structured endpoints for Churchill, St Edmund's, Darwin, and Downing with browser caching disabled. A source failure affects only that college.
+On load and explicit Refresh, the browser requests supported structured endpoints for Churchill, St Edmund's, Darwin, and Downing with browser caching disabled. These results are eligible for the `Live` freshness label. A direct-source failure affects only that college.
 
-### Scheduled sources
+### Scheduled collector
 
-A GitHub Actions collector runs once daily and on manual dispatch for Robinson, Christ's, Clare Hall, Clare, and Corpus Christi. It uses ordinary HTML parsing for server-rendered pages and a headless browser only for the JavaScript-rendered Clare Hall Sway menu.
+A GitHub Actions collector runs daily and on manual dispatch for the other 27 colleges. It uses ordinary HTTP and HTML/PDF parsing first and may use a headless browser only for a JavaScript-only source whose normal public access permits automation. It does not bypass authentication, CAPTCHAs, rate limits, or anti-bot controls; a blocked source remains link-only.
 
-For Robinson, the collector requests a rolling selected-date window covering the previous seven days through the next forty-two days. Dates outside that menu window still receive recurring schedule, access, location, and price information, but their date-specific menu is explicitly not published in the snapshot. The window may later be enlarged if the request volume remains acceptable.
+The collector supports three outcomes per college:
 
-The collector validates every new college snapshot before it can enter a deployment. If one scheduled source fails, its last successfully deployed record is carried forward with its original retrieval timestamp and a collection warning. A failed or structurally invalid result must never replace the last good snapshot. The collector creates the deployable JSON during the workflow; routine data refreshes do not add automated commits to the main branch.
+- `menu`: validated dated menu plus schedule/profile data;
+- `schedule`: validated schedule, price, access, or restrictions with an explicit menu-not-public state;
+- `link-only`: a validated source link and explicit unknown fields when no safe parser exists.
 
-The production workflow runs the collector, test suite, type check, and build before deploying. A checked-in schema-valid bootstrap snapshot makes the first deployment deterministic. Subsequent workflows can retrieve the last deployed snapshot as their per-source fallback.
+Robinson and other date-query sources use a rolling window from seven days before collection through 42 days after it. Outside the window, recurring information remains visible and the date-specific menu is explicitly not in the snapshot.
+
+Every new college record is schema-validated before deployment. If collection fails, the last successfully deployed record is carried forward with its original timestamp and a warning. Invalid or empty parsing cannot replace good data. Routine refreshes create the deployable JSON inside the workflow and do not add bot commits to `main`.
 
 ### Browser cache
 
-The existing local exact-date cache remains a final fallback for both direct and scheduled sources. A cached result retains its original retrieval time. Cache entries are schema-versioned, validated, and replaced only by a complete normalized result for the same college and date.
+The browser stores the last complete normalized result for each exact college/date pair. It is used only after the current direct or scheduled result fails and is always labelled `Cached fallback` with its original time. Version-one cache entries are rejected or migrated only through explicit schema validation.
 
-## Freshness Semantics
+## Freshness and Evidence
 
-The interface uses three mutually exclusive freshness states:
+Freshness values are mutually exclusive:
 
-- **Live**: obtained from an official direct endpoint during the current page load or refresh.
-- **Scheduled snapshot**: produced by the GitHub collector and shown with the collector's source retrieval time.
-- **Cached fallback**: the browser's last valid result for that exact college and date, used because the current live or snapshot request failed.
+- `Live`: obtained from an official direct endpoint in the current browser refresh;
+- `Scheduled snapshot`: produced by the GitHub collector and displayed with collection time;
+- `Cached fallback`: exact-date browser data retained after a current failure.
 
-The word “live” is never applied to scheduled or retained data. Source modification time and dashboard retrieval time remain separate. A scheduled snapshot that is older than its expected daily collection interval remains usable but receives a visible delayed-update warning.
+An overdue scheduled snapshot receives a delayed-update warning but is not relabelled live. Source modification and dashboard retrieval times remain separate.
+
+Source evidence is one of:
+
+- `Official college`;
+- `Official University`;
+- `Official student body`;
+- `Supplementary, not official`.
+
+The detail view shows those labels beside the relevant links. Supplementary evidence cannot establish unhosted access or override contradictory official information.
 
 ## Domain Model
 
-`CollegeId` expands to the nine supported colleges. The normalized college-day record continues to contain breakfast, brunch, lunch, and dinner even when the compact view does not render four full panels.
+`CollegeId` contains exactly the 31 College A–Z entries. A normalized `DiningDay` always contains breakfast, brunch, lunch, and dinner even though the compact table does not show four panels.
 
-Each normalized record contains:
+Each college-day record contains:
 
 - college identifier and display name;
-- selected ISO date, localized weekday, and `Europe/London` timezone;
-- all four normalized meal records;
-- location and map information;
-- access and payment guidance;
+- selected ISO date, weekday, and `Europe/London` timezone;
+- four meal records;
+- location and map query;
+- access, guest, and payment guidance;
 - price quotes;
-- applicable term or normal-period rule;
+- applicable term/normal-period rule;
 - college-wide and selected-date notices;
-- source links and evidence category;
+- evidence-labelled source links;
 - source modification and retrieval timestamps;
-- live, scheduled-snapshot, or cached-fallback freshness.
+- freshness and optional collection warning.
 
 Each meal record contains:
 
 - meal type;
 - availability: `available`, `closed`, or `unknown`;
 - serving time or `Time not published`;
-- one or more menu representations: structured items, official PDF, official image, official links, or an explicit message;
-- meal-specific notes, dietary details, restrictions, and source links.
+- zero or more structured items, official PDFs, official images, links, or explicit messages;
+- notes, dietary information, restrictions, and source links.
 
-Access guidance uses a conservative classification:
+Access classifications are:
 
-- `unhosted-cambridge`: an official source confirms that a Cambridge student from another college can attend without a host;
-- `guest-required`: the published route depends on a member host or guest arrangement;
+- `unhosted-cambridge`: an official source confirms access for a Cambridge student from another college without a host;
+- `guest-required`: published access depends on a member host or guest arrangement;
 - `members-only`: the source explicitly limits the service to members;
-- `unknown`: the public evidence does not establish the rule confidently.
+- `unknown`: public evidence does not establish the rule confidently.
 
-The initial evidence classification is:
+Downing is initially the only college eligible for `unhosted-cambridge`. All other colleges remain guest-required, members-only, or unknown until official evidence proves otherwise. The top-level filter is an access-evidence statement, not a claim that excluded colleges are closed.
 
-| College | Initial classification | Dashboard interpretation |
-| --- | --- | --- |
-| Downing | `unhosted-cambridge` | The published catering information describes charges for students who are not Downing students and permits bank-card payment. |
-| Churchill | `guest-required` | Public information describes dining by guests in connection with a College member; it does not establish a general unhosted-student route. |
-| Robinson | `guest-required` | Non-Robinson diners are welcomed as guests, with a Robinson member accompanying them to the till. |
-| Christ's | `guest-required` | Public regulations describe bona fide guests invited into Upper Hall. |
-| Clare Hall | `guest-required` | Guest booking and payment are described through the member host. |
-| Darwin | `guest-required` | Published guest dining and payment operate through the Darwin member. |
-| St Edmund's | `unknown` | Guests and University-card payment are mentioned, but the public evidence does not confirm an ordinary unhosted route. |
-| Clare | `unknown` | The public evidence does not confidently establish outside-college access. |
-| Corpus Christi | `unknown` | Guest pricing is published, but the entry or hosting rule is not clear enough to claim unhosted access. |
-
-Consequently, the initial confirmed-unhosted summary may contain only Downing when it has an available meal. This is an access-evidence decision, not a claim that the other colleges are closed. A classification changes only after an evidence fixture, source link, and review are updated together.
-
-Price quotes distinguish exact from approximate values, member from guest or non-member pricing, and current from dated information. Every quote includes an as-of label and source. A missing public price displays `Price not publicly confirmed`.
-
-Term rules distinguish year-round, University Full Term, college normal period, source-specific vacation operation, and unknown. A source-specific college calendar takes precedence over the University calendar.
-
-The menu model supports text items, PDFs, images, links, and messages as first-class content. This prevents Corpus's official menu image or St Edmund's official PDFs from being forced into unreliable text extraction.
+Prices distinguish exact from approximate, the applicable audience, the source, and an as-of date. Missing public prices display `Price not publicly confirmed`.
 
 ## Term-Date Policy
 
-When a college publishes its own normal-period or vacation-service dates, those dates control its schedule. When a college states only “Full Term,” the dashboard uses the University's published Full Term dates. When a source merely says “term time,” the dashboard may derive operation from University Full Term only if the interface labels that derivation.
+College-specific normal-period or vacation dates take precedence. If a source says `Full Term`, the dashboard uses the [official University term dates](https://www.cam.ac.uk/about-the-university/term-dates-and-calendars). If a source merely says `term time`, University Full Term may be used only with a visible derived-rule label.
 
-The University fallback calendar comes from the [official term dates and calendars page](https://www.cam.ac.uk/about-the-university/term-dates-and-calendars). Version two encodes the published Full Terms from 2025–26 through 2028–29:
+Version two encodes published Full Terms for academic years 2025–26 through 2028–29. It does not confuse Full Term with the longer statutory University term. Unsupported academic years produce `Term dates not confirmed`, not closure.
 
-| Academic year | Michaelmas Full Term | Lent Full Term | Easter Full Term |
-| --- | --- | --- | --- |
-| 2025–26 | 7 October–5 December 2025 | 20 January–20 March 2026 | 28 April–19 June 2026 |
-| 2026–27 | 6 October–4 December 2026 | 19 January–19 March 2027 | 27 April–18 June 2027 |
-| 2027–28 | 5 October–3 December 2027 | 18 January–17 March 2028 | 25 April–16 June 2028 |
-| 2028–29 | 3 October–1 December 2028 | 16 January–16 March 2029 | 24 April–15 June 2029 |
+Dated closures or changed times override recurring schedules. A missing current menu does not alter an explicitly published schedule to closed.
 
-These Full Term periods must not be confused with the University's longer statutory terms or a college's own normal period of residence. For example, Downing's published normal-period dates take precedence for Downing services that explicitly use that calendar.
+## Landing Table
 
-No rule is extrapolated beyond the academic years encoded from official sources. If a selected year lacks a supported term calendar, affected term-only meals become unknown with `Term dates not confirmed`; they do not become closed.
+The public root page opens immediately to an alphabetical table of all 31 colleges. No authentication interstitial appears.
 
-Recurring schedules and dated exceptions remain separate. A dated closure or changed serving time overrides the recurring rule. A missing date-specific menu does not change an explicitly scheduled meal to closed.
+Above the table are:
 
-## Compact User Interface
+- previous day, date picker, next day, and Today controls;
+- text search by college or dining-area name;
+- filters for `Serving today`, `Confirmed without a host`, `Menu published`, and `Access unknown`;
+- sortable column headers;
+- explicit Refresh;
+- a page-load counter labelled as page loads, not unique people.
 
-### Header and date controls
+Desktop columns are:
 
-The header retains previous-day, date-picker, next-day, Today, and Refresh controls. It also includes a small page-load counter backed by [hits.sh](https://hits.sh/). The counter requires no account or repository secret, is labelled `Page loads` rather than unique visitors, includes accessible alternative text, and links to its public counter information. Failure to load the third-party counter never affects the dashboard.
+`College | Services today | Next meal/time | Access | Indicative price | Freshness`
 
-### “Where can I eat?” summary
+The initial order is alphabetical so all 31 entries are predictable. Sorting or filtering never changes the selected date. On narrow screens the table retains `College`, `Services today`, and `Access`; the other values remain available in the detail dialog. Empty results explain which filters are active and provide a Clear filters action.
 
-A concise section above the college cards lists colleges that satisfy both conditions for the selected date:
+Rows are keyboard-focusable controls with an accessible name that includes college and selected date. Loading, error, and stale states remain readable without relying on colour.
 
-1. at least one meal is explicitly available; and
-2. access is classified `unhosted-cambridge`.
+## College Detail Pop-out
 
-The list does not imply that guest-required or access-unknown colleges are closed. If no college qualifies, it says `No college is currently confirmed for unhosted access on this date` and directs the user to the detailed access notes below.
+Selecting a row opens a right-side drawer on desktop and a full-screen modal dialog on narrow screens. It is not a separate browser window. The selected college is encoded as `?college=<id>`, enabling bookmarks, shared links, reload restoration, and browser Back/Forward navigation.
 
-Selecting a listed college updates one embedded Google map. The embed uses a key-free Google Maps place query and has a descriptive iframe title. Each college title separately opens a Google Maps search for the dining hall or nearest named food area. No location is represented as more precise than the published evidence supports.
+The detail contains:
 
-### College cards
+- college title linked to its Google Maps dining-area search;
+- dining-area name and embedded key-free Google map with an accessible title;
+- selected weekday and date;
+- access badge, explanation, guest rules, and payment notes;
+- indicative prices and as-of/source labels;
+- freshness, last checked time, source modification time, and warnings;
+- detailed sections only for available meals;
+- one compact line such as `Closed today: Breakfast, brunch`;
+- a separate line such as `Not confirmed: Dinner`;
+- meal time, menu content/status, dietary notes, restrictions, and evidence links;
+- college-wide and dated notices;
+- a final Sources section containing every verification link.
 
-All nine researched colleges remain visible, including colleges excluded from the unhosted summary. Each compact card header shows:
+Breakfast and brunch remain separate in data. Normally only the available morning service receives detail. If both are officially available, both render.
 
-- the college name linked to Google Maps;
-- the dining-area name;
-- an access badge and short access explanation;
-- a concise price summary;
-- freshness and last-checked time;
-- the selected weekday and date.
+Long menus use a short preview and native expandable details. PDFs are linked rather than permanently embedded. Official menu images may appear as responsive previews linked to the original. Remote source HTML is never injected.
 
-Only meals explicitly available on the selected date receive detailed panels. Closed meals collapse into one line, for example `Closed today: Breakfast, brunch`. Unknown meals use a separate line such as `Not confirmed: Dinner` so uncertainty cannot be mistaken for closure.
+The dialog has an explicit close button, closes on Escape, restores focus to the originating row, traps focus while open, labels its title, and prevents background interaction. Closing it removes only the `college` query parameter and preserves selected date and filters.
 
-Breakfast and brunch remain independent in data. Normally, only the available morning service receives a detailed panel and the unavailable one appears in the closed summary. If an official source genuinely publishes both as available, both are shown.
+## Secondary Page
 
-Long structured menus use a short preview with a native expandable details control. The serving status, time, principal menu representation, restrictions, freshness, and verification link remain visible without expansion. Large PDFs are linked rather than embedded as permanently expanded objects. An official menu image may appear as a responsive preview linked to its source.
+A Sources and Methodology page lists all 31 source groups, evidence labels, last successful collection times, and freshness definitions. It also explains that access and prices can change, scheduled sources are not live, supplementary links are not official, and users should verify important restrictions at the source.
 
-Notices and restrictions remain mandatory but compact. Each card ends with clearly named links to the official dining, menu, access, or price sources used for that college.
-
-## Adapter and Normalization Boundaries
-
-Each college adapter translates only its own source format into a source-level intermediate record. Shared normalization then applies date, meal, missing-data, provenance, and freshness rules.
-
-Direct adapters must not inject remote HTML into the page. Scheduled parsing treats remote markup as untrusted data. Structured text is escaped by the renderer, links accept only safe HTTP or HTTPS URLs, and image/PDF embeds retain official-source URLs.
-
-The session controller stores colleges in a generic keyed collection rather than hard-coded Churchill and St Edmund's fields. Date selection normalizes all nine colleges independently and derives the unhosted summary from normalized access plus meal availability. A single rejected source cannot prevent the other colleges or map summary from rendering.
+The main table and detail view remain the primary workflow. Future cafe/bar, review, login, and guest-request projects gain their own routes only when they contain functional features.
 
 ## Error and Claim Boundaries
 
-- Network, CORS, HTTP, headless-browser, and parse failures are shown per college.
-- A source parser that no longer recognizes the official structure returns unknown or an explicit source error, never a full day of inferred closures.
-- A last-good scheduled record keeps its original timestamp and receives a warning after a failed collection.
-- A browser cache fallback is visibly stale and cannot overwrite newer deployed data.
-- Missing menu content does not alter a confidently published schedule.
-- Unknown access excludes a college only from the confirmed-unhosted summary, not from the full dashboard.
-- Approximate prices remain labelled approximate and identify their audience and source date.
-- Student-body evidence is labelled and never presented as an official college statement.
-- The page-load counter counts counter requests or page loads, not people or unique visitors.
-- Users can always open the underlying source to verify the dashboard's interpretation.
+- One failed college never prevents the other 30 rows from rendering.
+- Parser drift returns unknown or a source error, never a fabricated day of closures.
+- Missing menu content does not change a confidently scheduled meal to closed.
+- Unknown access excludes a college only from the confirmed-unhosted filter.
+- Last-good snapshots retain their original timestamps after collection failure.
+- Exact-date cache fallbacks never overwrite newer live or scheduled results.
+- Dated or sample material is visibly dated and cannot appear as a current menu.
+- Petmenu is visibly supplementary and cannot establish official access, prices, or restrictions.
+- Page-load counting is non-blocking and is not described as unique visitors.
+- External content is parsed as untrusted data and safe URLs are restricted to HTTPS.
+- Users can always open the underlying source to verify the interpretation.
 
-## Testing Strategy
+## Testing
 
-### Domain and adapter tests
+### Domain and adapters
 
-- Fixture parsing for every direct and scheduled college source.
-- Date selection, recurring schedules, dated exceptions, closures, menu attachments, dietary notes, prices, and access evidence.
-- Sway structure changes fail closed rather than returning invented menu text.
-- Corpus official menu images remain valid source links without OCR assumptions.
-- Robinson's rolling collection window and outside-window messages.
-- All four meals remain in normalized data even when compactly rendered.
-- University Full Term and college-specific boundary dates, including unsupported academic years.
-- Direct, scheduled-snapshot, delayed-snapshot, and cached-fallback freshness.
-- Cache schema migration or safe rejection of version-one entries.
+- Exactly 31 canonical IDs, names, locations, and source groups.
+- Every normalized day retains all four meal records.
+- Direct adapter fixtures for Churchill, St Edmund's, Darwin, and Downing.
+- Scheduled parser fixtures for every source promoted beyond link-only.
+- Link-only profiles produce explicit unknowns and never fake current menus.
+- HTML, PDF, image, Sway, and supplementary menu representations retain evidence labels.
+- Full Term and college-specific boundary tests, including unsupported years.
+- Access classification and price provenance validation.
+- Snapshot schema rejection and per-college last-good carry-forward.
+- Version-two exact-date cache validation and stale semantics.
 
-### Session and user-interface tests
+### Landing table and dialog
 
-- All nine colleges load independently for the selected date.
-- The confirmed-unhosted list requires both available service and confirmed unhosted access.
-- Guest-required and unknown-access colleges never leak into that list.
-- Empty qualifying results use precise, non-closure language.
-- Available meals render detail; closed meals render one summary line; unknown meals render a separate line.
-- Breakfast and brunch suppression changes presentation only, not the underlying model.
-- Date, weekday, time, menu state, notes, freshness, prices, access, and official links remain visible as required.
-- Map links are safely encoded; the embed has an accessible title and responds to selection.
-- External links use safe new-tab opener isolation.
-- Page-load counter failure is non-blocking and has accessible fallback text.
-- Desktop, narrow mobile, keyboard, and reduced-motion behavior remain usable.
+- All 31 rows render alphabetically on initial load.
+- Search, filters, sort, empty results, and Clear filters work together.
+- `Serving today` requires explicit availability; unknown is not serving.
+- `Confirmed without a host` requires official unhosted evidence.
+- Responsive column hiding does not remove detail data.
+- Row click and keyboard activation open the correct college.
+- Query-parameter deep links, reload, Back/Forward, close, Escape, focus trap, and focus restoration work.
+- Available details, closed summary, unknown summary, breakfast/brunch presentation, maps, prices, access, notes, freshness, and sources render correctly.
+- Unsafe URLs and source HTML do not become executable content.
+- Counter failure does not affect the table.
 
-### Collector, build, and live checks
+### Collector, build, and release
 
-- Scheduled collector tests use saved fixtures and validate output against the public snapshot schema.
-- A failed scheduled source preserves the corresponding last-good record and timestamp.
-- A structurally invalid collection cannot be deployed.
-- Live smoke checks cover the four direct structured endpoints and the five scheduled source entry points.
-- Type checking, automated tests, and the production Vite build pass.
-- The built application works at the GitHub Pages project subpath.
-- A release audit compares representative current dates with every official source and checks map, access, price, term, and freshness labels.
-- The archived version-one repository and Pages URL remain unchanged after the version-two deployment.
+- Daily collector validates every one of the 27 scheduled college records.
+- Failed source collection preserves last-good data and timestamp.
+- Direct endpoint and scheduled entry-point live smoke checks run with polite request volume.
+- Type checking, full tests, production build, and GitHub Pages subpath checks pass.
+- Desktop and mobile table/dialog behavior is inspected with keyboard and reduced motion.
+- Representative current dates are compared to all 31 source groups before release.
+- The archive URL remains available and unchanged.
 
 ## Deployment
 
-The main repository continues to deploy through GitHub Actions to <https://sagarnidhish.github.io/cambridge-college-dining/>. Pushes to `main`, daily collection schedules, and manual workflow dispatch can create a candidate deployment. Only a candidate that passes collection validation, tests, type checking, and build is published.
+The main repository deploys to <https://sagarnidhish.github.io/cambridge-college-dining/> through GitHub Actions on pushes to `main`, the daily schedule, and manual dispatch. Only schema-valid collection output with passing tests, type checking, and build can be published.
 
-No new hosting account, server process, API key, or secret is introduced. GitHub's built-in workflow token and Pages artifact flow are sufficient. The README documents the direct-versus-snapshot distinction, source limitations, scheduled collection time, page-load counter behavior, local verification commands, and how to repair a source adapter after official markup changes.
+The collector first attempts current sources, then carries forward each failed college from the last deployed snapshot. A schema-valid checked-in bootstrap supports the first all-college deployment. No new hosting account, paid service, API key, or secret is introduced.
+
+The page-load counter uses [hits.sh](https://hits.sh/) and is isolated from application state. Google Maps uses key-free search and embed URLs.
 
 ## Acceptance Criteria
 
 Version two is complete only when:
 
-1. The main site displays Churchill, St Edmund's, Robinson, Christ's, Clare Hall, Clare, Corpus Christi, Darwin, and Downing for a selected date.
-2. Churchill, St Edmund's, Darwin, and Downing request their supported official structured endpoints on load and refresh.
-3. Robinson, Christ's, Clare Hall, Clare, and Corpus Christi use a validated daily GitHub snapshot with a visible retrieval time.
-4. Every college card visibly provides date, weekday, meal availability, serving time, menu content or status, notes and restrictions, freshness, access guidance, price status, and source links.
-5. Available meals receive compact details, closed meals share one summary line, and unknown meals remain visibly distinct from closed meals.
-6. Breakfast and brunch both remain modeled while the compact view normally emphasizes only the available morning service.
-7. The “Where can I eat?” section lists only colleges with both an available meal and officially supported unhosted Cambridge-student access.
-8. Each college title opens its dining location in Google Maps, and the summary includes one working, accessible embedded map.
-9. College-specific dates take precedence over University dates; derived and unsupported term rules are labelled honestly.
-10. Prices identify exact versus approximate values, audience, source, and as-of date, or explicitly state that no public price was confirmed.
-11. Official PDFs, images, and links remain first-class menu representations without unreliable invented transcription.
-12. A failed source leaves the other colleges usable and cannot replace a last-good snapshot or cache entry with invalid data.
-13. The page-load counter is non-blocking and is not described as a unique-person count.
-14. Automated tests, type checking, production build, live smoke checks, accessibility checks, and a current-source release audit pass.
-15. The main GitHub Pages deployment succeeds while <https://sagarnidhish.github.io/cambridge-college-dining_old/> remains available and unchanged.
+1. The public root page immediately shows an alphabetical table of exactly 31 Cambridge colleges without login.
+2. The selected date, search, sorting, and four evidence-aware filters operate without removing underlying data.
+3. Every row shows college, services today, next meal/time, access, indicative price, and freshness on desktop, with the documented responsive subset on mobile.
+4. Selecting any row opens the correct accessible drawer/dialog and a shareable `college` query parameter.
+5. Every detail view provides selected weekday/date, all meal availability, time, menu status/content, notes/restrictions, access, prices, freshness, map, and verification links.
+6. Available meals receive detail, closed meals share one summary line, and unknown meals remain distinct.
+7. Breakfast and brunch remain modeled independently while the compact view emphasizes the available service.
+8. Churchill, St Edmund's, Darwin, and Downing refresh their official structured endpoints in the browser.
+9. The other 27 colleges load validated daily snapshots at menu, schedule, or link-only evidence level.
+10. No dated handbook, sample menu, student-body page, or supplementary source is misrepresented as a current official menu.
+11. College-specific periods take precedence; derived and unsupported term rules are labelled.
+12. Access and prices retain evidence, audience, and as-of labels; only officially confirmed unhosted access enters that filter.
+13. A failed source leaves the other 30 usable and cannot replace valid last-good data.
+14. The Sources and Methodology page explains all source groups and freshness limitations.
+15. Automated tests, type checking, build, live smoke checks, accessibility inspection, and the 31-source release audit pass.
+16. The main GitHub Pages deployment succeeds while <https://sagarnidhish.github.io/cambridge-college-dining_old/> remains unchanged and available.
