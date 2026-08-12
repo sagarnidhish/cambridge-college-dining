@@ -29,4 +29,8 @@ Chrome 151 loaded the local production path using the current checked-in public 
 
 ## Publication record
 
-Publication, deployed-commit verification, public 31-row/deep-link checks, and the post-publication archive hash are recorded in a follow-up section after the GitHub Pages workflow completes.
+- GitHub Actions run [31623113890](https://github.com/sagarnidhish/cambridge-college-dining/actions/runs/31623113890) built and deployed application release commit `e22d32d5c0c52d27896484604e1e61eddac69bad` successfully. Clean install, live collection, full verification, built-data validation, artifact upload, and Pages deployment all passed.
+- The deployed public landing page rendered exactly 31 rows, reported “Showing 31 of 31 colleges,” completed loading, showed no college error rows, and exposed the titled Churchill dining map.
+- The deployed `?college=churchill` deep link rendered all 31 background rows plus the open Churchill dialog with dining area, access, payment, term rule, indicative price, freshness, evidence disclosure, verification links, and map title.
+- Main-site HTML SHA-256 after publication: `ccc9e188ee7a453d271f892d7308891403e234c92fdccb8c1970520ed327ae92`.
+- Archive HTML SHA-256 after publication: `1d0e9f6ba7fdf8de42f452061fd9e57a22d84b3bc13d710841f4566061879f2d`, exactly matching the pre-publication hash. No archive repository or deployment setting was changed.
