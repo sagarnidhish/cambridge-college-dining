@@ -552,7 +552,7 @@ git commit -m "feat: render all-college dining table"
 - Consumes: selected `CollegeViewState`, current date, and safe source URLs.
 - Produces: `appendDetailDialog(parent, state, date, onClose)`, `collegeFromLocation(location)`, `setCollegeInHistory(id|null, mode)`, and Back/Forward synchronization.
 
-- [ ] **Step 1: Write mandatory-content and interaction tests**
+- [x] **Step 1: Write mandatory-content and interaction tests**
 
 ```ts
 it("renders required dining evidence while grouping closed and unknown meals", () => {
@@ -572,31 +572,31 @@ it("rejects an unknown college query and preserves unrelated parameters", () => 
 });
 ```
 
-- [ ] **Step 2: Run new dialog/query tests and verify RED**
+- [x] **Step 2: Run new dialog/query tests and verify RED**
 
 Run: `npm test -- tests/ui/detail-dialog.test.ts tests/ui/query-state.test.ts tests/ui/mount.test.ts`
 
 Expected: FAIL because the modules do not exist.
 
-- [ ] **Step 3: Implement safe mandatory detail rendering**
+- [x] **Step 3: Implement safe mandatory detail rendering**
 
 Available meals get full sections with time, every menu representation, notes, restrictions, and evidence links. Closed meals appear in one summary; unknown meals appear in a separate summary. Render access explanation, guest/payment rules, source-labelled prices/as-of dates, term label, freshness/timestamps/warnings, notices, and all sources. Use `textContent`/created nodes only. Render only HTTPS links; menu images use `alt`, PDFs/links open separately, and long item lists use native `<details>`.
 
-- [ ] **Step 4: Add key-free Maps links and embed**
+- [x] **Step 4: Add key-free Maps links and embed**
 
 Build `https://www.google.com/maps/search/?api=1&query=<encoded query>` for the title link and `https://www.google.com/maps?q=<encoded query>&output=embed` for an iframe with title `<College> dining location map`, `loading="lazy"`, and a restrictive `referrerPolicy`.
 
-- [ ] **Step 5: Implement modal behavior and history synchronization**
+- [x] **Step 5: Implement modal behavior and history synchronization**
 
 Use `<dialog>` with `showModal()` where available and a tested fallback attribute in jsdom. Set `aria-labelledby`, provide an explicit close button, close on Escape, keep Tab/Shift+Tab within focusable elements, make the background inert while open, and restore the originating row button. Opening pushes `?college=<id>`; closing pushes a URL without only that parameter; `popstate` opens/closes without creating a new history entry.
 
-- [ ] **Step 6: Run all UI and type tests**
+- [x] **Step 6: Run all UI and type tests**
 
 Run: `npm test -- tests/ui && npm run typecheck`
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit the detail workflow**
+- [x] **Step 7: Commit the detail workflow**
 
 ```bash
 git add src/ui tests/ui

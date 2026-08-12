@@ -1,6 +1,7 @@
 import { weekdayForIso } from "../domain/dates";
 import type { CollegeId, DashboardState, DiningDay } from "../domain/types";
 import { tableRows, type TableOptions, type TableSort } from "./table-model";
+import { appendDetailDialog } from "./detail-dialog";
 
 export type DashboardFilter = "serving" | "unhosted" | "menuPublished" | "accessUnknown";
 
@@ -21,6 +22,7 @@ export interface DashboardActions {
   sortBy(column: TableSort): void;
   clearFilters(): void;
   openCollege(college: CollegeId): void;
+  closeCollege(): void;
 }
 
 function element<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string): HTMLElementTagNameMap[K] {
@@ -199,11 +201,18 @@ export function renderDashboard(root: HTMLElement, view: DashboardViewState, act
   const focusKey = focused instanceof HTMLElement && root.contains(focused) ? focused.dataset.focusKey : undefined;
   const dashboard = element("div");
   dashboard.className = "dashboard";
-  dashboard.append(element("h1", "Cambridge college dining"));
-  dashboard.append(element("p", "Compare published dining information across all 31 Cambridge colleges."));
-  appendDateControls(dashboard, view.dashboard.selectedDate, actions);
-  appendDirectoryControls(dashboard, view.options, actions);
-  appendDirectoryTable(dashboard, view, actions);
+  const directory = element("div");
+  directory.className = "directory-content";
+  directory.append(element("h1", "Cambridge college dining"));
+  directory.append(element("p", "Compare published dining information across all 31 Cambridge colleges."));
+  appendDateControls(directory, view.dashboard.selectedDate, actions);
+  appendDirectoryControls(directory, view.options, actions);
+  appendDirectoryTable(directory, view, actions);
+  dashboard.append(directory);
+  if (view.selectedCollege !== null) {
+    directory.inert = true;
+    appendDetailDialog(dashboard, view.dashboard.colleges[view.selectedCollege], view.dashboard.selectedDate, actions.closeCollege);
+  }
   root.replaceChildren(dashboard);
   if (focusKey !== undefined) {
     const replacement = root.querySelector<HTMLElement>(`[data-focus-key="${focusKey}"]`);

@@ -1,0 +1,26 @@
+import { COLLEGE_IDS, type CollegeId } from "../domain/types";
+
+type LocationLike = URL | Pick<Location, "href">;
+
+function asUrl(location: LocationLike): URL {
+  return location instanceof URL ? new URL(location.href) : new URL(location.href);
+}
+
+export function collegeFromLocation(location: LocationLike): CollegeId | null {
+  const value = asUrl(location).searchParams.get("college");
+  return value !== null && COLLEGE_IDS.includes(value as CollegeId) ? value as CollegeId : null;
+}
+
+export function urlWithCollege(location: LocationLike, college: CollegeId | null): URL {
+  const url = asUrl(location);
+  if (college === null) url.searchParams.delete("college");
+  else url.searchParams.set("college", college);
+  return url;
+}
+
+export function setCollegeInHistory(college: CollegeId | null, mode: "push" | "replace"): void {
+  const url = urlWithCollege(window.location, college);
+  const target = `${url.pathname}${url.search}${url.hash}`;
+  if (mode === "push") window.history.pushState({}, "", target);
+  else window.history.replaceState({}, "", target);
+}

@@ -28,7 +28,8 @@ function actions(): DashboardActions {
     setFilter: vi.fn(),
     sortBy: vi.fn(),
     clearFilters: vi.fn(),
-    openCollege: vi.fn()
+    openCollege: vi.fn(),
+    closeCollege: vi.fn()
   };
 }
 
@@ -93,5 +94,12 @@ describe("directory rendering", () => {
     renderDashboard(root, view({ dashboard: state }), actions());
     expect(root.querySelector('tr[data-college-row="churchill"]')?.textContent).toContain("Loading…");
     expect(root.querySelector('tr[data-college-row="fitzwilliam"]')?.textContent).toContain("Unavailable");
+  });
+
+  it("renders the selected college dialog while making the directory inert", () => {
+    const root = document.createElement("main");
+    renderDashboard(root, view({ selectedCollege: "churchill" }), actions());
+    expect(root.querySelector("dialog")?.textContent).toContain("Churchill College");
+    expect(root.querySelector<HTMLElement>(".directory-content")?.inert).toBe(true);
   });
 });

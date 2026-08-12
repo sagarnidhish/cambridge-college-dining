@@ -100,4 +100,24 @@ describe("mountDashboard", () => {
     expect(root.textContent).toContain("Newer");
     expect(root.textContent).not.toContain("Older");
   });
+
+  it("opens a shareable college dialog, preserves other query state, and restores row focus on close", async () => {
+    history.replaceState({}, "", "/?view=directory");
+    const root = await mounted();
+    document.body.append(root);
+    try {
+      const row = root.querySelector<HTMLButtonElement>('[data-college="churchill"]')!;
+      row.focus();
+      row.click();
+      expect(new URL(location.href).searchParams.get("college")).toBe("churchill");
+      expect(root.querySelector("dialog")?.open).toBe(true);
+      root.querySelector<HTMLButtonElement>('dialog button[name="close-details"]')!.click();
+      expect(new URL(location.href).searchParams.get("college")).toBeNull();
+      expect(new URL(location.href).searchParams.get("view")).toBe("directory");
+      expect(document.activeElement).toBe(root.querySelector('[data-college="churchill"]'));
+    } finally {
+      history.replaceState({}, "", "/");
+      root.remove();
+    }
+  });
 });

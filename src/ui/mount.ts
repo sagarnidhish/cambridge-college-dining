@@ -4,6 +4,7 @@ import { addIsoDays, isIsoDate, todayInCambridge } from "../domain/dates";
 import type { CollegeId, DashboardState, IsoDate } from "../domain/types";
 import { DEFAULT_TABLE_OPTIONS, type TableOptions } from "./table-model";
 import { renderDashboard, type DashboardActions, type DashboardFilter } from "./render";
+import { collegeFromLocation, setCollegeInHistory } from "./query-state";
 
 function loadingState(selectedDate: IsoDate): DashboardState {
   return {
@@ -24,10 +25,14 @@ export async function mountDashboard(
   let selectedDate = todayInCambridge(now());
   let dashboard = loadingState(selectedDate);
   let options: TableOptions = { ...DEFAULT_TABLE_OPTIONS };
-  let selectedCollege: CollegeId | null = null;
+  let selectedCollege: CollegeId | null = collegeFromLocation(window.location);
+  let lastSelectedCollege: CollegeId | null = selectedCollege;
   let refreshGeneration = 0;
 
-  const render = (): void => renderDashboard(root, { dashboard, options, selectedCollege }, actions);
+  const render = (): void => {
+    renderDashboard(root, { dashboard, options, selectedCollege }, actions);
+    if (selectedCollege !== null) root.querySelector<HTMLButtonElement>('dialog button[name="close-details"]')?.focus();
+  };
 
   const selectDate = (date: IsoDate): void => {
     selectedDate = date;
@@ -69,8 +74,26 @@ export async function mountDashboard(
       render();
     },
     clearFilters: () => { options = { ...DEFAULT_TABLE_OPTIONS }; render(); },
-    openCollege: (college) => { selectedCollege = college; render(); }
+    openCollege: (college) => {
+      selectedCollege = college;
+      lastSelectedCollege = college;
+      setCollegeInHistory(college, "push");
+      render();
+    },
+    closeCollege: () => {
+      const restore = selectedCollege ?? lastSelectedCollege;
+      selectedCollege = null;
+      setCollegeInHistory(null, "push");
+      render();
+      if (restore !== null) root.querySelector<HTMLButtonElement>(`[data-college="${restore}"]`)?.focus();
+    }
   };
+
+  window.addEventListener("popstate", () => {
+    selectedCollege = collegeFromLocation(window.location);
+    if (selectedCollege !== null) lastSelectedCollege = selectedCollege;
+    render();
+  });
 
   await refresh();
 }
