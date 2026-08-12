@@ -493,7 +493,7 @@ git commit -m "feat: add dining table selectors"
 - Consumes: `tableRows`, `TableOptions`, `DashboardState`, and date helpers.
 - Produces: `renderDashboard(root, viewState, actions)` with a semantic 31-row table and UI actions for date/search/filter/sort/refresh.
 
-- [ ] **Step 1: Write DOM tests for immediate table rendering and controls**
+- [x] **Step 1: Write DOM tests for immediate table rendering and controls**
 
 ```ts
 it("renders all colleges as accessible table row buttons", () => {
@@ -510,27 +510,27 @@ it("keeps selected date while search, filters, and sorting change", () => {
 });
 ```
 
-- [ ] **Step 2: Run render and mount tests and confirm RED**
+- [x] **Step 2: Run render and mount tests and confirm RED**
 
 Run: `npm test -- tests/ui/render.test.ts tests/ui/mount.test.ts`
 
 Expected: FAIL because the v1 card renderer has no table controls.
 
-- [ ] **Step 3: Render a semantic table with button-based row activation**
+- [x] **Step 3: Render a semantic table with button-based row activation**
 
 Render the exact desktop columns `College`, `Services today`, `Next meal/time`, `Access`, `Indicative price`, and `Freshness`. Place a full-width button inside the college-name cell instead of making `<tr>` itself interactive. Include readable live regions for loading/errors and an empty-result row with active-filter explanation and Clear filters button.
 
-- [ ] **Step 4: Add stateful controls in `mountDashboard`**
+- [x] **Step 4: Add stateful controls in `mountDashboard`**
 
 Maintain `selectedDate`, `TableOptions`, and `selectedCollege` independently. Search updates on input; checkbox filters update immediately; sort buttons toggle direction; date controls retain options. `loadingState` is generated from `COLLEGES` so 31 rows render before network completion.
 
-- [ ] **Step 5: Run UI, session, and type tests**
+- [x] **Step 5: Run UI, session, and type tests**
 
 Run: `npm test -- tests/ui tests/app && npm run typecheck`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit the landing table**
+- [x] **Step 6: Commit the landing table**
 
 ```bash
 git add src/ui src/app tests/ui

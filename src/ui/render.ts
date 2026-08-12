@@ -1,5 +1,14 @@
-import { formatCambridgeTimestamp, weekdayForIso } from "../domain/dates";
-import { MEAL_TYPES, type CollegeViewState, type DashboardState, type DiningDay, type MealRecord, type MenuContent, type SourceLink } from "../domain/types";
+import { weekdayForIso } from "../domain/dates";
+import type { CollegeId, DashboardState, DiningDay } from "../domain/types";
+import { tableRows, type TableOptions, type TableSort } from "./table-model";
+
+export type DashboardFilter = "serving" | "unhosted" | "menuPublished" | "accessUnknown";
+
+export interface DashboardViewState {
+  dashboard: DashboardState;
+  options: TableOptions;
+  selectedCollege: CollegeId | null;
+}
 
 export interface DashboardActions {
   previousDate(): void;
@@ -7,26 +16,20 @@ export interface DashboardActions {
   selectToday(): void;
   selectDate(value: string): void;
   refresh(): void;
+  setQuery(value: string): void;
+  setFilter(filter: DashboardFilter, checked: boolean): void;
+  sortBy(column: TableSort): void;
+  clearFilters(): void;
+  openCollege(college: CollegeId): void;
 }
 
 function element<K extends keyof HTMLElementTagNameMap>(tag: K, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
-  if (text !== undefined) {
-    node.textContent = text;
-  }
+  if (text !== undefined) node.textContent = text;
   return node;
 }
 
-function safeHttpsUrl(value: string): string | null {
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" ? url.href : null;
-  } catch {
-    return null;
-  }
-}
-
-function formattedDate(date: string): string {
+export function formattedDate(date: string): string {
   const display = new Intl.DateTimeFormat("en-GB", {
     timeZone: "UTC",
     day: "numeric",
@@ -36,264 +39,175 @@ function formattedDate(date: string): string {
   return `${weekdayForIso(date as DiningDay["date"])}, ${display}`;
 }
 
-function appendField(parent: HTMLElement, label: string, value: string): void {
-  const field = element("dl");
-  field.className = "field";
-  field.append(element("dt", `${label}:`), document.createTextNode(" "), element("dd", value));
-  parent.append(field);
-}
-
-function availabilityLabel(value: MealRecord["availability"]): string {
-  return value === "available" ? "Available" : value === "closed" ? "Closed" : "Unknown";
-}
-
-function appendExternalLink(parent: HTMLElement, label: string, url: string): HTMLAnchorElement | null {
-  const safeUrl = safeHttpsUrl(url);
-  if (safeUrl === null) {
-    return null;
-  }
-  const link = element("a", label);
-  link.href = safeUrl;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
-  parent.append(link);
-  return link;
-}
-
-function pdfTitle(collegeName: string, mealLabel: string, label: string, url: string): string {
-  const weekFromLabel = label.match(/\bweek\s+\d+\b/i)?.[0];
-  const weekFromUrl = url.match(/\bweek[-_ ]?(\d+)\b/i)?.[1];
-  const week = weekFromLabel ?? (weekFromUrl === undefined ? "published week" : `Week ${weekFromUrl}`);
-  return `${collegeName} ${mealLabel.toLowerCase()} menu for ${week}`;
-}
-
-function appendMenu(parent: HTMLElement, menu: MenuContent | MenuContent[], collegeName: string, mealLabel: string): void {
-  if (Array.isArray(menu)) {
-    for (const entry of menu) {
-      appendMenu(parent, entry, collegeName, mealLabel);
-    }
-    return;
-  }
-  const container = element("div");
-  container.className = "menu";
-  container.append(element("strong", "Menu:"));
-  if (menu.kind === "items") {
-    const list = element("ul");
-    for (const item of menu.items) {
-      list.append(element("li", item));
-    }
-    container.append(list);
-  } else if (menu.kind === "pdf") {
-    const safeUrl = safeHttpsUrl(menu.url);
-    if (safeUrl === null) {
-      container.append(document.createTextNode(" Menu unavailable"));
-    } else {
-      appendExternalLink(container, menu.label, safeUrl);
-      const object = element("object");
-      object.type = "application/pdf";
-      object.data = safeUrl;
-      object.title = pdfTitle(collegeName, mealLabel, menu.label, safeUrl);
-      object.append(document.createTextNode("PDF preview unavailable. "));
-      appendExternalLink(object, menu.label, safeUrl);
-      container.append(object);
-    }
-  } else if (menu.kind === "image" || menu.kind === "link") {
-    const link = appendExternalLink(container, menu.label, menu.url);
-    if (link === null) {
-      container.append(document.createTextNode(" Menu unavailable"));
-    }
-  } else {
-    container.append(document.createTextNode(` ${menu.message}`));
-  }
-  parent.append(container);
-}
-
-function appendMeal(parent: HTMLElement, meal: MealRecord<MenuContent | MenuContent[]>, collegeName: string, collegeId: string): void {
+function appendDateControls(parent: HTMLElement, date: string, actions: DashboardActions): void {
   const section = element("section");
-  const mealLabel = { breakfast: "Breakfast", brunch: "Brunch", lunch: "Lunch", dinner: "Dinner" }[meal.type];
-  const headingId = `${collegeId}-${meal.type}-heading`;
-  section.className = "meal-card";
-  section.dataset.meal = meal.type;
-  section.dataset.state = meal.availability;
-  section.setAttribute("aria-labelledby", headingId);
-  const heading = element("h3", mealLabel);
-  heading.id = headingId;
-  section.append(heading);
-  appendField(section, "Availability", availabilityLabel(meal.availability));
-  appendField(section, "Time", meal.time);
-  appendMenu(section, meal.menu, collegeName, mealLabel);
-  appendField(section, "Notes", meal.notes.length > 0 ? meal.notes.join(" ") : "No special notes published");
-  parent.append(section);
-}
-
-function appendOfficialSources(parent: HTMLElement, sources: SourceLink[]): void {
-  const section = element("section");
-  section.className = "official-sources";
-  section.append(element("h3", "Official sources"));
-  let rendered = false;
-  for (const source of sources) {
-    const link = appendExternalLink(section, `View official source: ${source.label}`, source.url);
-    if (link !== null) {
-      rendered = true;
-      section.append(document.createElement("br"));
-    }
-  }
-  if (!rendered) {
-    section.append(element("p", "Official source URL unavailable."));
-  }
-  parent.append(section);
-}
-
-function appendNotices(parent: HTMLElement, notices: string[], collegeId: string): void {
-  const section = element("aside");
-  section.className = "notices";
-  const headingId = `${collegeId}-notices-heading`;
-  section.setAttribute("aria-labelledby", headingId);
-  const heading = element("h3", "Notices");
-  heading.id = headingId;
-  section.append(heading);
-  if (notices.length === 0) {
-    section.append(element("p", "No general notices published."));
-  } else {
-    const list = element("ul");
-    for (const notice of notices) {
-      list.append(element("li", notice));
-    }
-    section.append(list);
-  }
-  parent.append(section);
-}
-
-function appendState(parent: HTMLElement, state: "live" | "scheduled" | "cached" | "stale" | "loading" | "error", text: string): void {
-  const region = element("p");
-  region.className = "state";
-  region.dataset.state = state;
-  region.setAttribute("role", "status");
-  region.setAttribute("aria-live", "polite");
-  const iconText = { live: "●", scheduled: "◷", cached: "⚠", stale: "⚠", loading: "…", error: "!" }[state];
-  const icon = element("span", iconText);
-  icon.className = "state-icon";
-  icon.setAttribute("aria-hidden", "true");
-  region.append(icon, document.createTextNode(` ${text}`));
-  parent.append(region);
-}
-
-function appendReadyCard(parent: HTMLElement, day: DiningDay): void {
-  const card = element("article");
-  card.className = "college-card";
-  card.append(element("h2", day.collegeName));
-  const date = element("time", formattedDate(day.date));
-  date.dateTime = day.date;
-  card.append(date);
-  appendState(
-    card,
-    day.freshness,
-    day.freshness === "live"
-      ? "Freshness: Live data"
-      : day.freshness === "scheduled"
-        ? "Freshness: Scheduled snapshot"
-        : "Freshness: Cached result (stale data)"
-  );
-  card.append(element("p", `Last checked: ${formatCambridgeTimestamp(day.fetchedAt)}`));
-  for (const mealType of MEAL_TYPES) {
-    appendMeal(card, day.meals[mealType], day.collegeName, day.college);
-  }
-  appendNotices(card, day.notices, day.college);
-  appendOfficialSources(card, day.sourceLinks);
-  parent.append(card);
-}
-
-function appendUnavailableCard(
-  parent: HTMLElement,
-  state: Exclude<CollegeViewState, { status: "ready" }>,
-  selectedDate: string
-): void {
-  const card = element("article");
-  card.className = "college-card";
-  card.append(element("h2", state.collegeName));
-  const date = element("time", formattedDate(selectedDate));
-  date.dateTime = selectedDate;
-  card.append(date);
-  appendState(card, state.status, state.status === "loading" ? "Loading live dining data…" : state.message);
-  if (state.status === "error") {
-    appendState(card, "error", "Freshness: Live data unavailable");
-    card.append(element("p", "Last checked: unavailable"));
-    for (const type of MEAL_TYPES) {
-      appendMeal(card, {
-        type,
-        availability: "unknown",
-        time: "Time unavailable",
-        menu: { kind: "message", message: "Menu unavailable" },
-        notes: ["Notes unavailable"],
-        sourceLinks: state.sourceLinks
-      }, state.collegeName, state.college);
-    }
-    appendNotices(card, ["Notices unavailable"], state.college);
-    appendOfficialSources(card, state.sourceLinks);
-  }
-  parent.append(card);
-}
-
-function appendControls(parent: HTMLElement, selectedDate: string, actions: DashboardActions): void {
-  const controls = element("section");
-  controls.className = "date-controls";
-  controls.setAttribute("aria-label", "Dining date controls");
-  const previous = element("button", "Previous");
-  previous.name = "previous";
-  previous.type = "button";
-  previous.dataset.focusKey = "previous";
-  previous.setAttribute("aria-label", "Previous dining date");
-  previous.addEventListener("click", actions.previousDate);
-  const today = element("button", "Today");
-  today.name = "today";
-  today.type = "button";
-  today.dataset.focusKey = "today";
-  today.setAttribute("aria-label", "Select today");
-  today.addEventListener("click", actions.selectToday);
-  const next = element("button", "Next");
-  next.name = "next";
-  next.type = "button";
-  next.dataset.focusKey = "next";
-  next.setAttribute("aria-label", "Next dining date");
-  next.addEventListener("click", actions.nextDate);
+  section.className = "date-controls";
+  section.setAttribute("aria-label", "Dining date controls");
+  const button = (name: string, label: string, action: () => void): HTMLButtonElement => {
+    const control = element("button", label);
+    control.type = "button";
+    control.name = name;
+    control.dataset.focusKey = name;
+    control.addEventListener("click", action);
+    return control;
+  };
+  const previous = button("previous", "Previous day", actions.previousDate);
+  const today = button("today", "Today", actions.selectToday);
+  const next = button("next", "Next day", actions.nextDate);
+  const label = element("label", "Dining date");
   const dateInput = element("input");
   dateInput.id = "dining-date";
   dateInput.type = "date";
-  dateInput.value = selectedDate;
+  dateInput.value = date;
   dateInput.dataset.focusKey = "date";
   dateInput.addEventListener("change", () => actions.selectDate(dateInput.value));
-  const refresh = element("button", "Refresh");
-  refresh.name = "refresh";
-  refresh.type = "button";
-  refresh.dataset.focusKey = "refresh";
-  refresh.setAttribute("aria-label", "Refresh dining data");
-  refresh.addEventListener("click", actions.refresh);
-  const dateLabel = element("label", "Dining date");
-  dateLabel.htmlFor = dateInput.id;
-  controls.append(previous, today, next, dateLabel, dateInput, refresh);
-  parent.append(controls);
+  label.htmlFor = dateInput.id;
+  label.append(dateInput);
+  const refresh = button("refresh", "Refresh data", actions.refresh);
+  section.append(previous, today, next, label, refresh);
+  parent.append(section);
 }
 
-export function renderDashboard(root: HTMLElement, state: DashboardState, actions: DashboardActions): void {
-  const focusedElement = document.activeElement;
-  const focusKey =
-    focusedElement instanceof HTMLElement && root.contains(focusedElement) ? focusedElement.dataset.focusKey : undefined;
+const FILTERS: ReadonlyArray<{ key: DashboardFilter; label: string }> = [
+  { key: "serving", label: "Serving today" },
+  { key: "unhosted", label: "Confirmed without a host" },
+  { key: "menuPublished", label: "Menu published" },
+  { key: "accessUnknown", label: "Access unknown" }
+];
+
+function appendDirectoryControls(parent: HTMLElement, options: TableOptions, actions: DashboardActions): void {
+  const section = element("section");
+  section.className = "directory-controls";
+  section.setAttribute("aria-label", "Filter colleges");
+  const searchLabel = element("label", "Search colleges or dining areas");
+  const search = element("input");
+  search.type = "search";
+  search.name = "college-search";
+  search.value = options.query;
+  search.dataset.focusKey = "search";
+  search.addEventListener("input", () => actions.setQuery(search.value));
+  searchLabel.append(search);
+  const fieldset = element("fieldset");
+  fieldset.append(element("legend", "Evidence filters"));
+  for (const { key, label } of FILTERS) {
+    const filterLabel = element("label");
+    const checkbox = element("input");
+    checkbox.type = "checkbox";
+    checkbox.name = key;
+    checkbox.checked = options[key];
+    checkbox.dataset.focusKey = `filter-${key}`;
+    checkbox.addEventListener("change", () => actions.setFilter(key, checkbox.checked));
+    filterLabel.append(checkbox, document.createTextNode(` ${label}`));
+    fieldset.append(filterLabel);
+  }
+  section.append(searchLabel, fieldset);
+  parent.append(section);
+}
+
+const COLUMNS: ReadonlyArray<{ key: TableSort; label: string; className?: string }> = [
+  { key: "college", label: "College" },
+  { key: "services", label: "Services today" },
+  { key: "next", label: "Next meal/time", className: "optional-column" },
+  { key: "access", label: "Access" },
+  { key: "price", label: "Indicative price", className: "optional-column" },
+  { key: "freshness", label: "Freshness", className: "optional-column" }
+];
+
+function appendDirectoryTable(parent: HTMLElement, view: DashboardViewState, actions: DashboardActions): void {
+  const rows = tableRows(view.dashboard, view.options);
+  const count = element("p", `Showing ${rows.length} of 31 colleges`);
+  count.className = "result-count";
+  count.setAttribute("role", "status");
+  count.setAttribute("aria-live", "polite");
+  parent.append(count);
+
+  const wrapper = element("div");
+  wrapper.className = "table-scroll";
+  const table = element("table");
+  table.className = "college-table";
+  const caption = element("caption", `College dining for ${formattedDate(view.dashboard.selectedDate)}`);
+  const head = element("thead");
+  const headerRow = element("tr");
+  for (const column of COLUMNS) {
+    const heading = element("th");
+    heading.scope = "col";
+    heading.dataset.column = column.key;
+    if (column.className !== undefined) heading.className = column.className;
+    if (view.options.sort === column.key) heading.setAttribute("aria-sort", view.options.direction === "asc" ? "ascending" : "descending");
+    const sort = element("button", column.label);
+    sort.type = "button";
+    sort.dataset.sort = column.key;
+    sort.dataset.focusKey = `sort-${column.key}`;
+    sort.addEventListener("click", () => actions.sortBy(column.key));
+    heading.append(sort);
+    headerRow.append(heading);
+  }
+  head.append(headerRow);
+  const body = element("tbody");
+  if (rows.length === 0) {
+    const row = element("tr");
+    const cell = element("td");
+    cell.colSpan = COLUMNS.length;
+    cell.append(element("p", "No colleges match the active search and filters."));
+    const clear = element("button", "Clear filters");
+    clear.type = "button";
+    clear.name = "clear-filters";
+    clear.addEventListener("click", actions.clearFilters);
+    cell.append(clear);
+    row.append(cell);
+    body.append(row);
+  } else {
+    for (const rowModel of rows) {
+      const row = element("tr");
+      row.dataset.collegeRow = rowModel.id;
+      row.dataset.status = rowModel.status;
+      const collegeCell = element("th");
+      collegeCell.scope = "row";
+      const open = element("button", rowModel.name);
+      open.type = "button";
+      open.className = "college-row-button";
+      open.dataset.college = rowModel.id;
+      open.dataset.focusKey = `college-${rowModel.id}`;
+      open.setAttribute("aria-label", `Open ${rowModel.name} dining details for ${formattedDate(view.dashboard.selectedDate)}`);
+      open.addEventListener("click", () => actions.openCollege(rowModel.id));
+      collegeCell.append(open);
+      const services = element("td", rowModel.services);
+      const sourceState = view.dashboard.colleges[rowModel.id];
+      if (sourceState?.status === "error") {
+        const detail = element("span", ` ${sourceState.message}`);
+        detail.className = "visually-hidden";
+        services.append(detail);
+      }
+      const next = element("td", rowModel.next);
+      next.className = "optional-column";
+      const access = element("td", rowModel.access);
+      const price = element("td", rowModel.price);
+      price.className = "optional-column";
+      const freshness = element("td", rowModel.freshness);
+      freshness.className = "optional-column";
+      row.append(collegeCell, services, next, access, price, freshness);
+      body.append(row);
+    }
+  }
+  table.append(caption, head, body);
+  wrapper.append(table);
+  parent.append(wrapper);
+}
+
+export function renderDashboard(root: HTMLElement, view: DashboardViewState, actions: DashboardActions): void {
+  const focused = document.activeElement;
+  const focusKey = focused instanceof HTMLElement && root.contains(focused) ? focused.dataset.focusKey : undefined;
   const dashboard = element("div");
   dashboard.className = "dashboard";
   dashboard.append(element("h1", "Cambridge college dining"));
-  appendControls(dashboard, state.selectedDate, actions);
-  const collegeGrid = element("div");
-  collegeGrid.className = "college-grid";
-  for (const college of [state.colleges.churchill, state.colleges["st-edmunds"]]) {
-    if (college.status === "ready") {
-      appendReadyCard(collegeGrid, college.day);
-    } else {
-      appendUnavailableCard(collegeGrid, college, state.selectedDate);
-    }
-  }
-  dashboard.append(collegeGrid);
+  dashboard.append(element("p", "Compare published dining information across all 31 Cambridge colleges."));
+  appendDateControls(dashboard, view.dashboard.selectedDate, actions);
+  appendDirectoryControls(dashboard, view.options, actions);
+  appendDirectoryTable(dashboard, view, actions);
   root.replaceChildren(dashboard);
   if (focusKey !== undefined) {
-    root.querySelector<HTMLElement>(`[data-focus-key="${focusKey}"]`)?.focus();
+    const replacement = root.querySelector<HTMLElement>(`[data-focus-key="${focusKey}"]`);
+    replacement?.focus();
+    if (replacement instanceof HTMLInputElement && replacement.type === "search") replacement.setSelectionRange(replacement.value.length, replacement.value.length);
   }
 }

@@ -1,20 +1,18 @@
 import type { DashboardSession } from "../app/dashboard-session";
+import { COLLEGES } from "../domain/catalog";
 import { addIsoDays, isIsoDate, todayInCambridge } from "../domain/dates";
-import type { DashboardState, IsoDate, LiveCollegeId } from "../domain/types";
-import { renderDashboard, type DashboardActions } from "./render";
-
-const collegeNames: Record<LiveCollegeId, string> = {
-  churchill: "Churchill College",
-  "st-edmunds": "St Edmund's College"
-};
+import type { CollegeId, DashboardState, IsoDate } from "../domain/types";
+import { DEFAULT_TABLE_OPTIONS, type TableOptions } from "./table-model";
+import { renderDashboard, type DashboardActions, type DashboardFilter } from "./render";
 
 function loadingState(selectedDate: IsoDate): DashboardState {
   return {
     selectedDate,
-    colleges: {
-      churchill: { status: "loading", college: "churchill", collegeName: collegeNames.churchill },
-      "st-edmunds": { status: "loading", college: "st-edmunds", collegeName: collegeNames["st-edmunds"] }
-    }
+    colleges: Object.fromEntries(COLLEGES.map((profile) => [profile.id, {
+      status: "loading",
+      college: profile.id,
+      collegeName: profile.name
+    }])) as DashboardState["colleges"]
   };
 }
 
@@ -24,31 +22,33 @@ export async function mountDashboard(
   now: () => Date = () => new Date()
 ): Promise<void> {
   let selectedDate = todayInCambridge(now());
-  let currentState = loadingState(selectedDate);
+  let dashboard = loadingState(selectedDate);
+  let options: TableOptions = { ...DEFAULT_TABLE_OPTIONS };
+  let selectedCollege: CollegeId | null = null;
   let refreshGeneration = 0;
 
-  const render = (): void => renderDashboard(root, currentState, actions);
+  const render = (): void => renderDashboard(root, { dashboard, options, selectedCollege }, actions);
 
   const selectDate = (date: IsoDate): void => {
     selectedDate = date;
-    currentState = session.selectDate(selectedDate);
+    dashboard = session.selectDate(date);
     render();
   };
 
   const refresh = async (): Promise<void> => {
     const generation = ++refreshGeneration;
     const dateToRefresh = selectedDate;
-    currentState = loadingState(dateToRefresh);
+    dashboard = loadingState(dateToRefresh);
     render();
     try {
       const refreshed = await session.refresh(dateToRefresh);
       if (generation === refreshGeneration) {
-        currentState = selectedDate === dateToRefresh ? refreshed : session.selectDate(selectedDate);
+        dashboard = selectedDate === dateToRefresh ? refreshed : session.selectDate(selectedDate);
         render();
       }
     } catch {
       if (generation === refreshGeneration && selectedDate === dateToRefresh) {
-        currentState = session.selectDate(dateToRefresh);
+        dashboard = session.selectDate(dateToRefresh);
         render();
       }
     }
@@ -58,16 +58,18 @@ export async function mountDashboard(
     previousDate: () => selectDate(addIsoDays(selectedDate, -1)),
     nextDate: () => selectDate(addIsoDays(selectedDate, 1)),
     selectToday: () => selectDate(todayInCambridge(now())),
-    selectDate: (value) => {
-      if (isIsoDate(value)) {
-        selectDate(value);
-      } else {
-        render();
-      }
+    selectDate: (value) => isIsoDate(value) ? selectDate(value) : render(),
+    refresh: () => { void refresh(); },
+    setQuery: (value) => { options = { ...options, query: value }; render(); },
+    setFilter: (filter: DashboardFilter, checked: boolean) => { options = { ...options, [filter]: checked }; render(); },
+    sortBy: (column) => {
+      options = options.sort === column
+        ? { ...options, direction: options.direction === "asc" ? "desc" : "asc" }
+        : { ...options, sort: column, direction: "asc" };
+      render();
     },
-    refresh: () => {
-      void refresh();
-    }
+    clearFilters: () => { options = { ...DEFAULT_TABLE_OPTIONS }; render(); },
+    openCollege: (college) => { selectedCollege = college; render(); }
   };
 
   await refresh();

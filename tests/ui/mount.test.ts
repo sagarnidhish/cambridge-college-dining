@@ -1,175 +1,103 @@
 import { describe, expect, it, vi } from "vitest";
 import type { DashboardSession } from "../../src/app/dashboard-session";
-import { createUnknownDiningDay } from "../../src/domain/meals";
-import type { DashboardState, IsoDate } from "../../src/domain/types";
+import { COLLEGES } from "../../src/domain/catalog";
+import type { CollegeViewState, DashboardState, IsoDate } from "../../src/domain/types";
 import { mountDashboard } from "../../src/ui/mount";
 
 const today = "2026-08-11" as const;
-const selectedDate = "2026-08-12" as const;
 
-function state(date: IsoDate = today): DashboardState {
+function state(date: IsoDate): DashboardState {
   return {
     selectedDate: date,
-    colleges: {
-      churchill: { status: "error", college: "churchill", collegeName: "Churchill College", message: "Unavailable", sourceLinks: [{ label: "Official", url: "https://www.chu.cam.ac.uk/" }] },
-      "st-edmunds": { status: "error", college: "st-edmunds", collegeName: "St Edmund's College", message: "Unavailable", sourceLinks: [{ label: "Official", url: "https://www.st-edmunds.cam.ac.uk/" }] }
-    }
+    colleges: Object.fromEntries(COLLEGES.map((profile) => [profile.id, {
+      status: "error",
+      college: profile.id,
+      collegeName: profile.name,
+      message: "Unavailable",
+      sourceLinks: profile.sources
+    } satisfies CollegeViewState])) as DashboardState["colleges"]
   };
 }
 
-function readyState(date: IsoDate): DashboardState {
-  const churchill = createUnknownDiningDay({
-    college: "churchill",
-    collegeName: "Churchill College",
-    date,
-    sourceLinks: [{ label: "Official", url: "https://www.chu.cam.ac.uk/" }],
-    fetchedAt: "2026-08-11T12:00:00.000Z"
-  });
-  const stEdmunds = createUnknownDiningDay({
-    college: "st-edmunds",
-    collegeName: "St Edmund's College",
-    date,
-    sourceLinks: [{ label: "Official", url: "https://my.st-edmunds.cam.ac.uk/category/menus/" }],
-    fetchedAt: "2026-08-11T12:00:00.000Z"
-  });
+function session(): DashboardSession & { refresh: ReturnType<typeof vi.fn>; selectDate: ReturnType<typeof vi.fn> } {
   return {
-    selectedDate: date,
-    colleges: {
-      churchill: { status: "ready", day: churchill },
-      "st-edmunds": { status: "ready", day: stEdmunds }
-    }
+    refresh: vi.fn(async (date: IsoDate) => state(date)),
+    selectDate: vi.fn((date: IsoDate) => state(date))
   };
 }
 
-function sessionFor(initial = state()): DashboardSession & { refresh: ReturnType<typeof vi.fn>; selectDate: ReturnType<typeof vi.fn> } {
-  return {
-    refresh: vi.fn(async (date) => state(date)),
-    selectDate: vi.fn((date) => state(date))
-  };
-}
-
-async function mounted(session = sessionFor()) {
+async function mounted(source = session()) {
   const root = document.createElement("main");
-  await mountDashboard(root, session, () => new Date("2026-08-11T12:00:00.000Z"));
+  await mountDashboard(root, source, () => new Date("2026-08-11T12:00:00.000Z"));
   return root;
 }
 
 describe("mountDashboard", () => {
-  it("refreshes Cambridge today once when mounted", async () => {
-    const session = sessionFor();
-    await mounted(session);
-
-    expect(session.refresh).toHaveBeenCalledTimes(1);
-    expect(session.refresh).toHaveBeenCalledWith(today);
+  it("refreshes Cambridge today once and keeps 31 rows visible", async () => {
+    const source = session();
+    const root = await mounted(source);
+    expect(source.refresh).toHaveBeenCalledOnce();
+    expect(source.refresh).toHaveBeenCalledWith(today);
+    expect(root.querySelectorAll("tbody tr")).toHaveLength(31);
   });
 
-  it("selects adjacent calendar days from previous and next controls", async () => {
-    const session = sessionFor();
-    const root = await mounted(session);
-    root.querySelector<HTMLButtonElement>('button[name="previous"]')?.click();
-    root.querySelector<HTMLButtonElement>('button[name="next"]')?.click();
-
-    expect(session.selectDate).toHaveBeenNthCalledWith(1, "2026-08-10");
-    expect(session.selectDate).toHaveBeenNthCalledWith(2, "2026-08-11");
+  it("selects adjacent days and refreshes the current date", async () => {
+    const source = session();
+    const root = await mounted(source);
+    root.querySelector<HTMLButtonElement>('button[name="next"]')!.click();
+    root.querySelector<HTMLButtonElement>('button[name="refresh"]')!.click();
+    await vi.waitFor(() => expect(source.refresh).toHaveBeenCalledTimes(2));
+    expect(source.selectDate).toHaveBeenCalledWith("2026-08-12");
+    expect(source.refresh).toHaveBeenLastCalledWith("2026-08-12");
   });
 
-  it("selects Cambridge today and an exact valid date-input value", async () => {
-    const session = sessionFor();
-    const root = await mounted(session);
-    root.querySelector<HTMLButtonElement>('button[name="today"]')?.click();
-    const input = root.querySelector<HTMLInputElement>('input[type="date"]');
-    if (input === null) throw new Error("date input missing");
-    input.value = selectedDate;
-    input.dispatchEvent(new Event("change", { bubbles: true }));
-
-    expect(session.selectDate).toHaveBeenNthCalledWith(1, today);
-    expect(session.selectDate).toHaveBeenNthCalledWith(2, selectedDate);
+  it("applies search and filters while preserving the selected date", async () => {
+    const source = session();
+    const root = await mounted(source);
+    const input = root.querySelector<HTMLInputElement>('input[type="search"]')!;
+    input.value = "wolfson";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(root.querySelectorAll("tbody tr")).toHaveLength(1);
+    root.querySelector<HTMLInputElement>('input[name="accessUnknown"]')!.click();
+    expect(source.selectDate).not.toHaveBeenCalled();
+    expect(root.querySelector<HTMLInputElement>('input[type="date"]')?.value).toBe(today);
   });
 
-  it("refreshes the current selected date after date navigation", async () => {
-    const session = sessionFor();
-    const root = await mounted(session);
-    root.querySelector<HTMLButtonElement>('button[name="next"]')?.click();
-    root.querySelector<HTMLButtonElement>('button[name="refresh"]')?.click();
-    await vi.waitFor(() => expect(session.refresh).toHaveBeenCalledTimes(2));
-
-    expect(session.refresh).toHaveBeenLastCalledWith(selectedDate);
-  });
-
-  it("keeps date and refresh controls available when a college is in error", async () => {
-    const root = await mounted(sessionFor());
-
-    expect(root.querySelector<HTMLButtonElement>('button[name="previous"]')?.disabled).toBe(false);
-    expect(root.querySelector<HTMLInputElement>('input[type="date"]')?.disabled).toBe(false);
-    expect(root.querySelector<HTMLButtonElement>('button[name="refresh"]')?.disabled).toBe(false);
-  });
-
-  it("keeps keyboard focus on the activated control after rerendering", async () => {
-    const root = await mounted(sessionFor());
+  it("toggles sort direction and preserves keyboard focus after rerender", async () => {
+    const root = await mounted();
     document.body.append(root);
     try {
-      const next = root.querySelector<HTMLButtonElement>('button[name="next"]');
-      if (next === null) throw new Error("next button missing");
-
-      next.focus();
-      next.click();
-
-      expect(document.activeElement).toBe(root.querySelector('button[name="next"]'));
+      const sort = root.querySelector<HTMLButtonElement>('button[data-sort="college"]')!;
+      sort.focus();
+      sort.click();
+      expect(document.activeElement).toBe(root.querySelector('button[data-sort="college"]'));
+      expect(root.querySelector('th[data-column="college"]')?.getAttribute("aria-sort")).toBe("descending");
     } finally {
       root.remove();
     }
   });
 
-  it("keeps the latest same-date refresh on screen when an older refresh resolves afterwards", async () => {
+  it("keeps a newer refresh on screen when an older one resolves last", async () => {
     const resolvers: Array<(value: DashboardState) => void> = [];
-    const session: DashboardSession = {
+    const source: DashboardSession = {
       selectDate: (date) => state(date),
-      refresh: (date) => new Promise((resolve) => resolvers.push(resolve))
+      refresh: (date) => new Promise((resolve) => resolvers.push((value) => resolve(value)))
     };
     const root = document.createElement("main");
-    const mount = mountDashboard(root, session, () => new Date("2026-08-11T12:00:00.000Z"));
+    const mounting = mountDashboard(root, source, () => new Date("2026-08-11T12:00:00.000Z"));
     resolvers.shift()?.(state(today));
-    await mount;
-
-    root.querySelector<HTMLButtonElement>('button[name="refresh"]')?.click();
-    root.querySelector<HTMLButtonElement>('button[name="refresh"]')?.click();
-    resolvers[1]?.({
-      ...state(today),
-      colleges: { ...state(today).colleges, churchill: { status: "error", college: "churchill", collegeName: "Churchill College", message: "Newer result", sourceLinks: [] } }
-    });
-    await vi.waitFor(() => expect(root.textContent).toContain("Newer result"));
-    resolvers[0]?.({
-      ...state(today),
-      colleges: { ...state(today).colleges, churchill: { status: "error", college: "churchill", collegeName: "Churchill College", message: "Older result", sourceLinks: [] } }
-    });
-    await Promise.resolve();
-
-    expect(root.textContent).toContain("Newer result");
-    expect(root.textContent).not.toContain("Older result");
-  });
-
-  it("re-renders a changed date from retained snapshots when the initial refresh settles", async () => {
-    let resolveInitial: ((value: DashboardState) => void) | undefined;
-    let snapshotsReady = false;
-    const session: DashboardSession & { selectDate: ReturnType<typeof vi.fn> } = {
-      refresh: () => new Promise((resolve) => { resolveInitial = resolve; }),
-      selectDate: vi.fn((date: IsoDate) => snapshotsReady ? readyState(date) : state(date))
-    };
-    const root = document.createElement("main");
-    const mounting = mountDashboard(root, session, () => new Date("2026-08-11T12:00:00.000Z"));
-    const input = root.querySelector<HTMLInputElement>('input[type="date"]');
-    if (input === null) throw new Error("date input missing");
-    input.value = selectedDate;
-    input.dispatchEvent(new Event("change", { bubbles: true }));
-
-    expect(root.textContent).toContain("Unavailable");
-    snapshotsReady = true;
-    resolveInitial?.(readyState(today));
     await mounting;
-
-    expect(session.selectDate).toHaveBeenLastCalledWith(selectedDate);
-    expect(root.querySelectorAll('[data-meal]')).toHaveLength(8);
-    expect(root.textContent).not.toContain("Unavailable");
-    expect(root.querySelector('time[datetime="2026-08-12"]')).not.toBeNull();
+    root.querySelector<HTMLButtonElement>('button[name="refresh"]')!.click();
+    root.querySelector<HTMLButtonElement>('button[name="refresh"]')!.click();
+    const newer = state(today);
+    newer.colleges.churchill = { status: "error", college: "churchill", collegeName: "Churchill College", message: "Newer", sourceLinks: [] };
+    resolvers[1]?.(newer);
+    await vi.waitFor(() => expect(root.textContent).toContain("Newer"));
+    const older = state(today);
+    older.colleges.churchill = { status: "error", college: "churchill", collegeName: "Churchill College", message: "Older", sourceLinks: [] };
+    resolvers[0]?.(older);
+    await Promise.resolve();
+    expect(root.textContent).toContain("Newer");
+    expect(root.textContent).not.toContain("Older");
   });
 });

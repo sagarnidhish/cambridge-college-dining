@@ -127,5 +127,5 @@ export type CollegeViewState =
 
 export interface DashboardState {
   selectedDate: IsoDate;
-  colleges: Record<LiveCollegeId, CollegeViewState> & Partial<Record<CollegeId, CollegeViewState>>;
+  colleges: Record<CollegeId, CollegeViewState>;
 }
