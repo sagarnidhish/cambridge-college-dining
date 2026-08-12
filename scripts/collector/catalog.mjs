@@ -1,8 +1,8 @@
 export const SCHEDULED_SOURCES = [
   ["christs", "Christ's College", "https://www.christs.cam.ac.uk/student-life/meals"],
-  ["clare", "Clare College", "https://www.clare.cam.ac.uk/admissions-outreach/undergraduate-study/life-clare/dining-and-catering"],
+  ["clare", "Clare College", "https://ucs.clare.cam.ac.uk/current-students/life-in-cambridge/"],
   ["clare-hall", "Clare Hall", "https://www.clarehall.cam.ac.uk/dining/"],
-  ["corpus-christi", "Corpus Christi", "https://www.corpus.cam.ac.uk/undergraduate-study/living-corpus/food-and-dining"],
+  ["corpus-christi", "Corpus Christi", "https://www.jcr.corpus.cam.ac.uk/catering"],
   ["emmanuel", "Emmanuel College", "https://www.emma.cam.ac.uk/explore/life"],
   ["fitzwilliam", "Fitzwilliam College", "https://www.undergraduate.study.cam.ac.uk/colleges/fitzwilliam-college"],
   ["girton", "Girton College", "https://www.girton.cam.ac.uk/dining-and-socialising"],

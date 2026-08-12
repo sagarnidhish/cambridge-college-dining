@@ -1,6 +1,6 @@
 import { collegeById } from "../domain/catalog";
 import { unknownDiningDay } from "../domain/fallback-day";
-import { weekdayForIso } from "../domain/dates";
+import { todayInCambridge, weekdayForIso } from "../domain/dates";
 import type { DiningDay, IsoDate, MealRecord, MenuContent, PriceQuote } from "../domain/types";
 import type { DowningMenu, DowningRecipe, DowningSnapshot } from "./fetch";
 
@@ -46,7 +46,7 @@ function priceRange(recipes: DowningRecipe[], fetchedAt: string): PriceQuote[] {
   }];
 }
 
-function menuMeal(type: "lunch" | "dinner", menu: DowningMenu): MealRecord<MenuContent[]> {
+function menuMeal(type: "lunch" | "dinner", menu: DowningMenu, date: IsoDate): MealRecord<MenuContent[]> {
   const items = menu.recipes.map((recipe) => {
     const price = recipe.prices[0]?.price_text;
     return `${recipe.name}${price === undefined ? "" : ` — ${price}`}`;
@@ -58,7 +58,12 @@ function menuMeal(type: "lunch" | "dinner", menu: DowningMenu): MealRecord<MenuC
     menu: [{ kind: "items", items }],
     notes: [`Kafoodle publishes this as ${menu.name}; it does not separate lunch from dinner in the public response.`],
     restrictions: recipeRestrictions(menu.recipes),
-    sourceLinks: [...DOWNING.sources, { label: "Official Downing Kafoodle menu", url: KAFOODLE, evidence: "official-college" }]
+    sourceLinks: [...DOWNING.sources, { label: "Official Downing Kafoodle menu", url: KAFOODLE, evidence: "official-college" }],
+    serviceWindow: {
+      kind: "date-specific",
+      date,
+      source: { label: "Official Downing Kafoodle menu", url: KAFOODLE, evidence: "official-college" }
+    }
   };
 }
 
@@ -74,6 +79,12 @@ export function parseDowningDay(snapshot: DowningSnapshot, date: IsoDate, fetche
     }
   };
   const day = unknownDiningDay(profile, date, fetchedAt, "live");
+  if (date !== todayInCambridge(new Date(fetchedAt))) {
+    return {
+      ...day,
+      notices: ["The live Kafoodle endpoint exposes only its current active menu; it is not reused for another selected date."]
+    };
+  }
   const menu = selectedMenu(snapshot.menu.menus, date);
   if (menu === null || menu.recipes.length === 0) {
     return {
@@ -85,7 +96,7 @@ export function parseDowningDay(snapshot: DowningSnapshot, date: IsoDate, fetche
   const prices = priceRange(menu.recipes, fetchedAt);
   return {
     ...day,
-    meals: { ...day.meals, lunch: menuMeal("lunch", menu), dinner: menuMeal("dinner", menu) },
+    meals: { ...day.meals, lunch: menuMeal("lunch", menu, date), dinner: menuMeal("dinner", menu, date) },
     prices,
     coverage: "menu",
     notices: ["The public Kafoodle response groups items by weekday and does not identify which items belong to lunch or dinner; the same published list is shown for both services."],

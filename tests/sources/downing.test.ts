@@ -12,7 +12,10 @@ describe("Downing live source", () => {
       coverage: "menu",
       access: { classification: "unknown" }
     });
-    expect(day.meals.lunch.availability).toBe("available");
+    expect(day.meals.lunch).toMatchObject({
+      availability: "available",
+      serviceWindow: { kind: "date-specific", date: "2026-08-12" }
+    });
     expect(day.meals.lunch.menu[0]).toMatchObject({ kind: "items", items: ["Honey glazed bacon loin — £3.50", "Vegetable gyoza — £3.40"] });
     expect(day.meals.lunch.restrictions).toEqual(expect.arrayContaining(["Contains: Gluten", "Contains: Milk", "Contains Pork", "Suitable for Vegan diet"]));
     expect(day.prices).toEqual(expect.arrayContaining([
@@ -21,8 +24,15 @@ describe("Downing live source", () => {
   });
 
   it("does not attach a menu whose weekday does not include the selected date", () => {
-    const day = parseDowningDay({ base: DOWNING_BASE_FIXTURE, menu: DOWNING_SEARCH_FIXTURE }, "2026-08-14", "2026-08-12T08:00:00.000Z");
+    const day = parseDowningDay({ base: DOWNING_BASE_FIXTURE, menu: DOWNING_SEARCH_FIXTURE }, "2026-08-14", "2026-08-14T08:00:00.000Z");
     expect(day.coverage).toBe("schedule");
+    expect(day.meals.lunch.availability).toBe("unknown");
+  });
+
+  it("does not reuse the current active weekly menu for a future matching weekday", () => {
+    const day = parseDowningDay({ base: DOWNING_BASE_FIXTURE, menu: DOWNING_SEARCH_FIXTURE }, "2026-08-19", "2026-08-12T08:00:00.000Z");
+
+    expect(day.coverage).toBe("link-only");
     expect(day.meals.lunch.availability).toBe("unknown");
   });
 

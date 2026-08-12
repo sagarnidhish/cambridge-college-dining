@@ -89,4 +89,27 @@ describe("scheduled snapshot normalization", () => {
     expect(day.meals.dinner).toMatchObject({ availability: "available", time: "17:50–19:00" });
     expect(day.access?.classification).toBe("unknown");
   });
+
+  it("shows Clare's sourced weekday Buttery hours only in Full Term", () => {
+    const snapshot = parseScheduledSnapshot(scheduledSnapshotFixture());
+    const day = scheduledDayFor(snapshot, collegeById("clare"), "2026-10-07");
+
+    expect(day.meals.breakfast).toMatchObject({ availability: "available", time: "08:00–09:00" });
+    expect(day.meals.lunch).toMatchObject({ availability: "available", time: "12:30–13:30" });
+    expect(day.meals.dinner).toMatchObject({ availability: "available", time: "18:15–19:15" });
+    expect(day.meals.brunch.availability).toBe("unknown");
+    expect(day.access?.classification).toBe("unknown");
+  });
+
+  it("shows Corpus's sourced weekend pattern as host-required", () => {
+    const snapshot = parseScheduledSnapshot(scheduledSnapshotFixture());
+    const saturday = scheduledDayFor(snapshot, collegeById("corpus-christi"), "2026-10-10");
+    const sunday = scheduledDayFor(snapshot, collegeById("corpus-christi"), "2026-10-11");
+
+    expect(saturday.meals.brunch).toMatchObject({ availability: "available", time: "11:30–13:00" });
+    expect(saturday.meals.dinner.availability).toBe("unknown");
+    expect(sunday.meals.brunch).toMatchObject({ availability: "available", time: "11:30–13:00" });
+    expect(sunday.meals.dinner).toMatchObject({ availability: "available", time: "17:45–18:45" });
+    expect(sunday.access?.classification).toBe("guest-required");
+  });
 });

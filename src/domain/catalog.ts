@@ -133,7 +133,14 @@ export const COLLEGES: readonly CollegeProfile[] = [
       "Formal Hall guest arrangements do not establish everyday Buttery access.",
       "Clare members use their University Card and charges go to their College bill."
     ),
-    prices: [quote("Typical Buttery meal", "about £5–£7", "approximate", "Clare members", "2026-08-12", CLARE_UCS)]
+    prices: [quote("Typical Buttery meal", "about £5–£7", "approximate", "Clare members", "2026-08-12", CLARE_UCS)],
+    serviceWindows: windows("full-term-only", CLARE_UCS, ["breakfast", "brunch", "lunch", "dinner"]),
+    recurringServices: [
+      recurring("breakfast", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "08:00–09:00", { kind: "full-term-only", source: CLARE_UCS }),
+      recurring("lunch", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "12:30–13:30", { kind: "full-term-only", source: CLARE_UCS }),
+      recurring("dinner", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], "18:15–19:15", { kind: "full-term-only", source: CLARE_UCS }),
+      recurring("brunch", ["Saturday"], "12:30–13:30", { kind: "full-term-only", source: CLARE_UCS })
+    ]
   }),
   profile("clare-hall", "Clare Hall", "Dining Hall", "scheduled", [CLARE_HALL_DINING], {
     access: guidance(
@@ -156,7 +163,14 @@ export const COLLEGES: readonly CollegeProfile[] = [
       "Attend as a guest and verify the current College host and entry arrangement.",
       "Guests may pay by credit or debit card and are charged a 60% surcharge."
     ),
-    prices: [quote("Guest surcharge", "+60%", "exact", "Guests", "2026-08-12", CORPUS_JCR)]
+    prices: [quote("Guest surcharge", "+60%", "exact", "Guests", "2026-08-12", CORPUS_JCR)],
+    serviceWindows: windows("full-term-only", CORPUS_JCR, ["breakfast", "brunch", "lunch", "dinner"]),
+    recurringServices: [
+      recurring("breakfast", ["Tuesday", "Thursday"], "08:15–09:15", { kind: "full-term-only", source: CORPUS_JCR }),
+      recurring("brunch", ["Saturday", "Sunday"], "11:30–13:00", { kind: "full-term-only", source: CORPUS_JCR }),
+      recurring("lunch", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "12:00–13:30", { kind: "full-term-only", source: CORPUS_JCR }),
+      recurring("dinner", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sunday"], "17:45–18:45", { kind: "full-term-only", source: CORPUS_JCR })
+    ]
   }),
   profile("darwin", "Darwin College", "Dining Hall", "direct", [
     official("Dine", "https://www.darwin.cam.ac.uk/dine/"),
