@@ -12,7 +12,8 @@
     "test:coverage": "vitest run --coverage",
     "build": "tsc --noEmit && vite build",
     "collect": "node scripts/collect-dining.mjs --previous public/data/college-dining.json --output public/data/college-dining.json",
-    "verify": "npm run typecheck && npm run test && npm run build",
+    "validate:dist": "node scripts/validate-built-data.mjs",
+    "verify": "npm run typecheck && npm run test && npm run build && npm run validate:dist",
     "smoke:live": "node scripts/live-smoke.mjs"
   },
   "devDependencies": {

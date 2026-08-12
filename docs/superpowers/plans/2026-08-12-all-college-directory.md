@@ -740,7 +740,7 @@ git commit -m "feat: add safe daily dining collector"
 - Consumes: collector CLI, schema validator, four direct endpoint definitions, and Vite `dist`.
 - Produces: daily/manual/push deployment, `npm run smoke:live`, `npm run validate:dist`, and an expanded `npm run verify`.
 
-- [ ] **Step 1: Write release tests for schedule, collection order, and built data**
+- [x] **Step 1: Write release tests for schedule, collection order, and built data**
 
 ```ts
 it("collects before verification and deploys on a daily schedule", () => {
@@ -756,27 +756,27 @@ it("ships one schema-valid scheduled record for each of the 27 colleges", () => 
 });
 ```
 
-- [ ] **Step 2: Run release tests and verify RED**
+- [x] **Step 2: Run release tests and verify RED**
 
 Run: `npm test -- tests/release`
 
 Expected: FAIL because there is no daily schedule or dist validator.
 
-- [ ] **Step 3: Update the deployment workflow**
+- [x] **Step 3: Update the deployment workflow**
 
 Add `schedule: [{ cron: '17 5 * * *' }]`. In the build job run `npm ci`, `npm run collect`, `npm run verify`, and `npm run validate:dist` before upload. Keep `contents: read`, Pages write permissions, deployment concurrency, and no commit/push step. Collection failure should still yield a valid merged file through per-college carry-forward; a total invalid output stops deployment.
 
-- [ ] **Step 4: Expand live smoke checks conservatively**
+- [x] **Step 4: Expand live smoke checks conservatively**
 
 Check the four direct entry points and a bounded sample of scheduled primary URLs with clear college labels, timeouts, and no parallel flood. A blocked scheduled source reports its status for release review but does not imply a parsed menu. The script exits non-zero for a direct endpoint structural failure.
 
-- [ ] **Step 5: Run release tests, full verification, and live smoke**
+- [x] **Step 5: Run release tests, full verification, and live smoke**
 
 Run: `npm test -- tests/release && npm run verify && npm run validate:dist && npm run smoke:live`
 
 Expected: all automated checks PASS; live smoke prints the four direct sources and the bounded scheduled sample with no uncaught rejection.
 
-- [ ] **Step 6: Commit release automation**
+- [x] **Step 6: Commit release automation**
 
 ```bash
 git add .github/workflows/pages.yml scripts package.json tests/release
