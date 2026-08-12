@@ -794,17 +794,17 @@ git commit -m "ci: collect and deploy daily dining data"
 - Consumes: complete application, collector output, live smoke report, main and archive GitHub Pages URLs.
 - Produces: reproducible contributor instructions, a 31-source audit ledger, checked plan boxes, and verified public deployment.
 
-- [ ] **Step 1: Document actual operation and claim boundaries**
+- [x] **Step 1: Document actual operation and claim boundaries**
 
 README must include Node floor, `npm ci`, `npm run dev`, `npm run collect`, `npm run verify`, source architecture, freshness meanings, cache behavior, GitHub Pages deployment, source-repair procedure, and archive URL. The audit ledger has one row per college with primary URL, evidence kind, retrieval level, last check result, and limitation.
 
-- [ ] **Step 2: Run the complete local release gate from a clean dependency state**
+- [x] **Step 2: Run the complete local release gate from a clean dependency state**
 
 Run: `npm ci && npm run collect && npm run verify && npm run validate:dist && npm run smoke:live && git diff --check`
 
 Expected: dependency install succeeds; tests, type checking, build, schema validation, and live smoke pass; no whitespace errors.
 
-- [ ] **Step 3: Inspect keyboard, mobile, and reduced-motion behavior**
+- [x] **Step 3: Inspect keyboard, mobile, and reduced-motion behavior**
 
 Serve `dist` beneath the same relative-path behavior as GitHub Pages. Verify: 31 initial rows; date controls; search/four filters/sort; row keyboard activation; drawer title and mandatory fields; Tab/Shift+Tab containment; Escape; focus restoration; deep link; Back/Forward; 720px mobile layout; 320px overflow; reduced motion; and readable loading/error/cached states. Record results in the audit ledger.
 
@@ -812,7 +812,7 @@ Serve `dist` beneath the same relative-path behavior as GitHub Pages. Verify: 31
 
 For each catalog record, verify at least one source resolves or document its current failure without promoting evidence. Compare representative direct results with the official page. Request `https://sagarnidhish.github.io/cambridge-college-dining_old/` before and after deployment and record that it remains available and visually unchanged.
 
-- [ ] **Step 5: Commit documentation and completed plan checkboxes**
+- [x] **Step 5: Commit documentation and completed plan checkboxes**
 
 ```bash
 git add README.md docs/source-audit-2026-08-12.md docs/superpowers/plans/2026-08-12-all-college-directory.md

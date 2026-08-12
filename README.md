@@ -1,76 +1,85 @@
 # Cambridge college dining
 
-A small, browser-only dashboard for checking lunch and dinner information for
-two Cambridge colleges: Churchill College and St Edmund's College. It gives a
-single date-selected view while keeping the colleges' own pages as the
-authoritative sources.
+A source-linked dining directory for all 31 University of Cambridge colleges. The public landing page is an alphabetical table with date controls, search, evidence filters, sorting, and a shareable detail dialog for each college.
 
-## Official sources
+- Current site: <https://sagarnidhish.github.io/cambridge-college-dining/>
+- Preserved v1 archive: <https://sagarnidhish.github.io/cambridge-college-dining_old/>
+- Sources and methodology: <https://sagarnidhish.github.io/cambridge-college-dining/?view=sources>
 
-The dashboard reads these official WordPress REST endpoints on load and when
-the user selects **Refresh**:
+The archive is a separate GitHub Pages copy and is not modified by this repository's deployment workflow.
 
-- [Churchill lunch and dinner menu](https://www.chu.cam.ac.uk/about/campus/dining-at-college/lunch-and-dinner-menu/) — [REST endpoint](https://www.chu.cam.ac.uk/wp-json/wp/v2/pages/1305?_fields=id,modified,link,title,content)
-- [St Edmund's menus](https://my.st-edmunds.cam.ac.uk/category/menus/) — [REST endpoint](https://my.st-edmunds.cam.ac.uk/wp-json/wp/v2/posts?categories=69&per_page=10&_fields=id,date,modified,link,title,content)
-- [St Edmund's catering information](https://my-cr.st-edmunds.cam.ac.uk/facilities/catering/) — [REST endpoint](https://my-cr.st-edmunds.cam.ac.uk/wp-json/wp/v2/pages/18?_fields=id,modified,link,title,content)
+## What the directory shows
 
-It is intentionally limited to those two colleges. The college sites and their
-CDNs control cache headers and source publication timing, so a successful
-refresh means the latest response then available through those sources, not a
-guarantee that a college has published a new menu.
+For the selected Cambridge date, every college row reports the best public evidence currently available for services, next meal/time, access, indicative price, and freshness. Opening a row shows the weekday and date, meal times, menu material, notices, restrictions, access and guest guidance, payment information, term context, source timestamps, a map, and direct verification links.
 
-## Availability and menus
+Meal availability is deliberately conservative:
 
-Each meal is shown as one of:
+- **Available** means dated or clearly applicable official evidence supports service.
+- **Closed** means a source explicitly closes that service for the selected date.
+- **Unknown** means the public evidence is insufficient. Unknown never silently becomes closed.
 
-- **Available** — the official source publishes service for that meal and date.
-- **Closed** — the official source explicitly says that service is unavailable.
-- **Unknown** — the source does not publish enough information to determine the
-  meal's availability for that date; it is not treated as closed.
+The site cannot guarantee admission, price, allergen safety, or last-minute service changes. Users should verify the linked source before travelling and ask catering staff about dietary requirements.
 
-Churchill menu text is displayed when it is published in the source page. St
-Edmund's publishes its weekly menus as PDFs, so the dashboard embeds each
-official PDF where the browser permits and always provides the official PDF
-link. That preserves the source rather than attempting to transcribe or infer
-menu items.
+## Source architecture and freshness
+
+Four colleges use structured public browser sources on page load and Refresh:
+
+- Churchill: official WordPress dining page data.
+- Darwin: official WordPress menu-publication metadata plus published normal hours. Its public structured endpoint does not expose dish text, so the site links to the official weekly menu instead of inventing items.
+- Downing: official public Kafoodle menu data. The feed groups items by weekday but does not separate lunch from dinner; that limitation is displayed.
+- St Edmund's: official WordPress weekly menu posts and catering timetable.
+
+The other 27 colleges use the checked-in, schema-validated `public/data/college-dining.json` snapshot. The daily collector validates each primary HTTPS source with ordinary public access, at most two simultaneous requests, a 15-second timeout, no credentials, and no protection bypass. A failed college retains its previous record and timestamp with a warning. A link check alone never promotes a college to menu coverage.
+
+Freshness labels mean:
+
+- **Live**: the direct official source returned and parsed during the current refresh.
+- **Scheduled snapshot**: the checked-in daily collection record is being used.
+- **Cached fallback**: an earlier successful result for the exact college and date is shown after a current direct request failed.
+
+The browser cache is local to one device. It is versioned, schema-validated, and exact-date only; it is not a shared database or a complete dining history.
+
+Full Term labels are derived from the University's published Full Term calendar. They are context only and do not establish that a servery is open.
 
 ## Run locally
 
+Node.js 20.19 or newer is required.
+
 ```bash
-npm install
+npm ci
 npm run dev
-npm run verify
-npm run smoke:live
 ```
 
-`npm run verify` performs type checking, unit tests, and a production build.
-`npm run smoke:live` makes live requests to all three official REST endpoints;
-it requires a successful HTTP response, JSON content type, matching CORS
-permission, and the expected official payload shapes.
+Useful checks:
 
-## Resilience and limits
+```bash
+npm run collect       # refresh public/data/college-dining.json with last-good carry-forward
+npm run verify        # typecheck, tests, production build, and built-data validation
+npm run smoke:live    # check the four direct sources and a scheduled-link sample
+```
 
-The app keeps the most recent successful date-and-college result in browser
-local storage. If a later live request fails, that cached result is labelled
-**Cached result (stale data)** with its last-checked time. If no suitable cached
-result exists, the source is shown as unavailable and the official link remains
-available. Local storage is per browser and device and is not a shared cache.
+To inspect a collection without changing the checked-in file:
 
-This is a static client application: it has no application server, database, or
-historical dining-data store. It does not claim to retain a complete history or
-to know values a college has not published.
+```bash
+node scripts/collect-dining.mjs \
+  --previous public/data/college-dining.json \
+  --output /tmp/college-dining.json
+```
+
+## Repairing a source
+
+When a college changes its page or payload:
+
+1. Open the college's public official page and identify the most specific current HTTPS dining source.
+2. Update `src/domain/catalog.ts`. For a scheduled college, update the matching entry in `scripts/collector/catalog.mjs`; the drift test requires the collector URL to remain in the public catalog.
+3. If structured parsing changes, first add a small sanitized fixture and a failing regression test. Preserve the fail-closed rule: unrecognized markup produces Unknown plus a warning, not Closed.
+4. Run `npm run collect` to exercise last-good carry-forward, then `npm run verify` and `npm run smoke:live`.
+5. Record the result and limitation in `docs/source-audit-2026-08-12.md`.
+
+Do not add credentials, scrape authenticated pages, bypass bot protection, or infer guest access from the mere existence of a public menu.
 
 ## Deployment
 
-The Pages workflow runs on pushes to `main` (and can be run manually). It uses
-`npm ci`, type checks, tests, builds the Vite site, and publishes the Pages
-artifact from `dist` using a repository-relative production output. The live
-smoke command is intentionally a release/manual check rather than a deployment
-job: a temporary college outage must not prevent publication of an otherwise
-valid static site that has stale-cache support.
+`.github/workflows/pages.yml` runs on pushes to `main`, manual dispatch, and daily at 05:17 UTC. It installs from the lockfile, collects scheduled links, runs the full verification gate, validates `dist/data/college-dining.json`, and deploys only the `dist` artifact with GitHub Pages' least-privilege permissions. It does not commit collector output back to the repository.
 
-College page markup and WordPress payloads can change without notice. Fixtures
-and unit tests catch known parsing expectations, while `npm run smoke:live`
-checks the current official endpoint status, CORS, content type, and basic
-payload structure. A smoke failure signals that the source adapter may have
-drifted and should be investigated against the official pages before a release.
+The detailed source and release ledger is in [docs/source-audit-2026-08-12.md](docs/source-audit-2026-08-12.md).
