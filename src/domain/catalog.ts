@@ -149,7 +149,12 @@ export const COLLEGES: readonly CollegeProfile[] = [
       "Clare Hall publishes guest dining through a College member host and specifically welcomes St Cross guests with meal cards.",
       "Guest meals are paid from the host's Upay account; other groups should contact the College before attending.",
       "Members pay through Upay; cash and direct card payments are not accepted in the Dining Hall."
-    )
+    ),
+    serviceWindows: windows("year-round", CLARE_HALL_DINING, ["lunch", "dinner"]),
+    recurringServices: [
+      recurring("lunch", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "12:00–13:30", { kind: "year-round", source: CLARE_HALL_DINING }),
+      recurring("dinner", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "18:00–19:00", { kind: "year-round", source: CLARE_HALL_DINING })
+    ]
   }),
   profile("corpus-christi", "Corpus Christi", "Hall", "scheduled", [
     official("Food and dining", "https://www.corpus.cam.ac.uk/undergraduate-study/living-corpus/food-and-dining"),

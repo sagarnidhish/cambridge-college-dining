@@ -112,4 +112,16 @@ describe("scheduled snapshot normalization", () => {
     expect(sunday.meals.dinner).toMatchObject({ availability: "available", time: "17:45–18:45" });
     expect(sunday.access?.classification).toBe("guest-required");
   });
+
+  it("shows Clare Hall's weekday host route with the published event warning", () => {
+    const snapshot = parseScheduledSnapshot(scheduledSnapshotFixture());
+    const weekday = scheduledDayFor(snapshot, collegeById("clare-hall"), "2026-08-12");
+    const weekend = scheduledDayFor(snapshot, collegeById("clare-hall"), "2026-08-15");
+
+    expect(weekday.meals.lunch).toMatchObject({ availability: "available", time: "12:00–13:30" });
+    expect(weekday.meals.dinner).toMatchObject({ availability: "available", time: "18:00–19:00" });
+    expect(weekday.meals.lunch.notes.join(" ")).toContain("closures or changes");
+    expect(weekday.access?.classification).toBe("guest-required");
+    expect(weekend.meals.lunch.availability).toBe("unknown");
+  });
 });
