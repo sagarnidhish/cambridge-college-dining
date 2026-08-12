@@ -1,0 +1,31 @@
+export const SCHEDULED_SOURCES = [
+  ["christs", "Christ's College", "https://www.christs.cam.ac.uk/student-life/meals"],
+  ["clare", "Clare College", "https://www.clare.cam.ac.uk/admissions-outreach/undergraduate-study/life-clare/dining-and-catering"],
+  ["clare-hall", "Clare Hall", "https://www.clarehall.cam.ac.uk/dining/"],
+  ["corpus-christi", "Corpus Christi", "https://www.corpus.cam.ac.uk/undergraduate-study/living-corpus/food-and-dining"],
+  ["emmanuel", "Emmanuel College", "https://www.emma.cam.ac.uk/explore/life"],
+  ["fitzwilliam", "Fitzwilliam College", "https://www.undergraduate.study.cam.ac.uk/colleges/fitzwilliam-college"],
+  ["girton", "Girton College", "https://www.girton.cam.ac.uk/dining-and-socialising"],
+  ["gonville-caius", "Gonville & Caius", "https://www.cai.cam.ac.uk/sites/default/files/accessibility_information.pdf"],
+  ["homerton", "Homerton College", "https://www.homerton.cam.ac.uk/sites/default/files/Catering%20Opening%20Times%20Term%20Time.pdf"],
+  ["hughes-hall", "Hughes Hall", "https://www.undergraduate.study.cam.ac.uk/colleges/hughes-hall"],
+  ["jesus", "Jesus College", "https://www.jesus.cam.ac.uk/college/life-jesus/food-and-drink/cafeteria"],
+  ["kings", "King's College", "https://www.kings.cam.ac.uk/study/undergraduate-study/finances-and-financial-support"],
+  ["lucy-cavendish", "Lucy Cavendish College", "https://services.lucy.cam.ac.uk/meal-epos/"],
+  ["magdalene", "Magdalene College", "https://www.magd.cam.ac.uk/study-magdalene/undergraduate-study/accommodation-and-food/catering"],
+  ["murray-edwards", "Murray Edwards College", "https://www.murrayedwards.cam.ac.uk/college-life/college-facilities"],
+  ["newnham", "Newnham College", "https://newn.cam.ac.uk/weekly-and-daily-menus/"],
+  ["pembroke", "Pembroke College", "https://www.pem.cam.ac.uk/college/catering/information-students/servery-menu"],
+  ["peterhouse", "Peterhouse", "https://www.undergraduate.study.cam.ac.uk/colleges/peterhouse"],
+  ["queens", "Queens' College", "https://www.queens.cam.ac.uk/life-at-queens/catering/dining-hall/weekly-menu/"],
+  ["robinson", "Robinson College", "https://www.robinson.cam.ac.uk/college-life/garden-restaurant-menu"],
+  ["selwyn", "Selwyn College", "https://www.sel.cam.ac.uk/current-members/hall-menu"],
+  ["sidney-sussex", "Sidney Sussex College", "https://sscsu.org.uk/hall"],
+  ["st-catharines", "St Catharine's College", "https://mcr.caths.cam.ac.uk/current-students/hall-times"],
+  ["st-johns", "St John's College", "https://www.joh.cam.ac.uk/live-and-study/food-and-drink"],
+  ["trinity", "Trinity College", "https://www.trin.cam.ac.uk/access/outreach-home/student-experiences-at-trinity/"],
+  ["trinity-hall", "Trinity Hall", "https://www.trinhall.cam.ac.uk/study-with-us/life-trinity-hall/food-and-drink/"],
+  ["wolfson", "Wolfson College", "https://www.wolfson.cam.ac.uk/food/cafeteria-menus"]
+].map(([id, name, url]) => ({ id, name, url }));
+
+export const SCHEDULED_COLLEGE_IDS = SCHEDULED_SOURCES.map(({ id }) => id);

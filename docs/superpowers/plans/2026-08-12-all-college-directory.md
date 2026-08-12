@@ -683,7 +683,7 @@ git commit -m "feat: add sources view and responsive directory"
 - Consumes: checked-in `public/data/college-dining.json`, the 27 scheduled source URLs, ordinary public Fetch, and no secrets.
 - Produces: `npm run collect`, `validateSnapshot(value)`, and `mergeCollection(previous, attempts, collectedAt)`.
 
-- [ ] **Step 1: Write collector validation and carry-forward tests**
+- [x] **Step 1: Write collector validation and carry-forward tests**
 
 ```ts
 it("carries a failed college forward without changing its timestamp", () => {
@@ -697,29 +697,29 @@ it("rejects an empty successful parse so it cannot replace good menu data", () =
 });
 ```
 
-- [ ] **Step 2: Run collector tests and verify RED**
+- [x] **Step 2: Run collector tests and verify RED**
 
 Run: `npm test -- tests/collector`
 
 Expected: FAIL because collector modules do not exist.
 
-- [ ] **Step 3: Implement bounded polite collection**
+- [x] **Step 3: Implement bounded polite collection**
 
 For each scheduled college, validate the primary HTTPS link with GET, a descriptive user agent, redirect following, a 15-second abort timeout, and at most two concurrent requests. Do not send credentials or bypass protection. Keep the checked-in structured record when the source is merely link-validated. Promote a record only through an explicit college parser that returns non-empty evidence; the initial release can safely retain link-only records.
 
 Set `allowJs: true` in `tsconfig.json` and include `scripts` so Vitest and type checking can import the `.mjs` collector modules without untracked declarations; keep `checkJs: false` because runtime shape validation is exercised by the collector tests.
 
-- [ ] **Step 4: Implement atomic all-college validation and last-good merge**
+- [x] **Step 4: Implement atomic all-college validation and last-good merge**
 
 Read the prior JSON, validate it, apply successful records, carry failures with original `collectedAt`, add a warning, validate the complete result, then write the requested output path. CLI arguments are `--previous <path>` and `--output <path>`; invalid arguments exit non-zero. `npm run collect` writes `public/data/college-dining.json` for local inspection.
 
-- [ ] **Step 5: Run collector tests and a temporary collection**
+- [x] **Step 5: Run collector tests and a temporary collection**
 
 Run: `npm test -- tests/collector && node scripts/collect-dining.mjs --previous public/data/college-dining.json --output /tmp/college-dining.json`
 
 Expected: tests PASS; the command either refreshes link validation or carries individual records forward, and produces a schema-valid 27-college file.
 
-- [ ] **Step 6: Commit the collector**
+- [x] **Step 6: Commit the collector**
 
 ```bash
 git add scripts package.json tsconfig.json tests/collector
