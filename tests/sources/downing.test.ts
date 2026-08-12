@@ -10,7 +10,7 @@ describe("Downing live source", () => {
       college: "downing",
       freshness: "live",
       coverage: "menu",
-      access: { classification: "unhosted-cambridge" }
+      access: { classification: "unknown" }
     });
     expect(day.meals.lunch.availability).toBe("available");
     expect(day.meals.lunch.menu[0]).toMatchObject({ kind: "items", items: ["Honey glazed bacon loin — £3.50", "Vegetable gyoza — £3.40"] });

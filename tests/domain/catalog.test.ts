@@ -27,4 +27,8 @@ describe("college catalog", () => {
       "st-edmunds"
     ]);
   });
+
+  it("uses dining-area-specific map queries for every college", () => {
+    expect(COLLEGES.every(({ mapQuery, diningArea }) => mapQuery.includes(diningArea))).toBe(true);
+  });
 });

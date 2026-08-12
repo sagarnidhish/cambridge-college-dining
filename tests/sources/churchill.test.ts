@@ -11,7 +11,7 @@ describe("parseChurchillDay", () => {
       college: "churchill",
       freshness: "live",
       coverage: "menu",
-      access: { classification: "guest-required" },
+      access: { classification: "unhosted-cambridge" },
       location: { diningArea: "Dining Hall" }
     });
     expect(day.meals.breakfast).toMatchObject({ availability: "available", time: "07:30–09:30" });

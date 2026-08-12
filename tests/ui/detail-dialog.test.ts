@@ -36,8 +36,8 @@ describe("college detail dialog", () => {
     expect(dialog.textContent).toContain("Vegetable tart");
     expect(dialog.textContent).toContain("University card required");
     expect(dialog.textContent).toContain("Ask staff about allergens");
-    expect(dialog.textContent).toContain("Host or guest arrangement");
-    expect(dialog.textContent).toContain("Price not publicly confirmed");
+    expect(dialog.textContent).toContain("Confirmed without a host");
+    expect(dialog.textContent).toContain("Typical self-service dinner: about £7.29");
     expect(dialog.textContent).toContain("Freshness: Live");
     expect(dialog.querySelector('a[href*="google.com/maps/search"]')).not.toBeNull();
     expect(dialog.querySelector("iframe")).toBeNull();

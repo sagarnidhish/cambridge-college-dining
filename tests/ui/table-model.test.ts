@@ -59,7 +59,7 @@ describe("table row derivation", () => {
 
   it("requires affirmative evidence for serving, menu, and unhosted filters", () => {
     const rows = tableRows(dashboard(), { ...DEFAULT_TABLE_OPTIONS, serving: true, menuPublished: true, unhosted: true });
-    expect(rows.map(({ id }) => id)).toEqual(["downing"]);
+    expect(rows.map(({ id }) => id)).toEqual(["churchill"]);
     expect(rows[0]).toMatchObject({ isServing: true, hasPublishedMenu: true, accessClass: "unhosted-cambridge" });
   });
 
